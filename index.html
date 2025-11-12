@@ -292,18 +292,21 @@
      */
     async function callApi(method, params) {
       let url = API_URL;
+      
+      // MODIFICADO: Define as opções mínimas primeiro
       const options = {
         method: method,
-        // redirect: 'follow', // REMOVIDO: Pode causar "Failed to fetch" (CORS redirect)
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8',
-        },
       };
 
       if (method === 'GET') {
         const query = new URLSearchParams(params).toString();
         url = `${API_URL}?${query}`;
+        // Não adiciona headers desnecessários a um GET
       } else if (method === 'POST') {
+        // Adiciona headers e body APENAS para POST
+        options.headers = {
+          'Content-Type': 'text/plain',
+        };
         options.body = JSON.stringify(params);
       }
 
