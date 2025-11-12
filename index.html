@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Memorandos</title>
+  <!-- Carrega o CSS do Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Fonte personalizada (Poppins) do Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* Aplica a fonte Poppins como padrão */
+    body {
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    /* Fundo gradiente futurista */
+    .fundo-gradiente {
+      background: linear-gradient(-45deg, #1f2937, #111827, #312e81, #1e3a8a);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+    }
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Oculta o spinner de carregamento */
+    #spinner, #historySpinner { display: none; }
+    /* Estilo para o spinner (loading) */
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.2);
+      border-left-color: #ffffff;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Estilo para o card principal (efeito "glassmorphism") */
+    .app-card {
+      background-color: rgba(31, 41, 55, 0.5); /* bg-gray-800 com 50% de opacidade */
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+    
+    /* Estilo customizado para inputs (visual futurista) */
+    .input-futuristic {
+      background-color: rgba(17, 24, 39, 0.6); /* bg-gray-900 com 60% opacidade */
+      border: 1px solid rgba(75, 85, 99, 0.8); /* border-gray-600 com 80% opacidade */
+    }
+    .input-futuristic:focus {
+      background-color: rgba(17, 24, 39, 0.9); /* bg-gray-900 com 90% opacidade */
+      border-color: rgba(59, 130, 246, 0.8); /* border-blue-500 com 80% opacidade */
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+    }
+
+    /* Remove as setas padrão do input[type=number] */
+    /* Chrome, Safari, Edge, Opera */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    /* Firefox */
+    input[type=number] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+    
+    /* Estilo customizado para botões */
+    .btn-primary {
+      background: linear-gradient(90deg, #3b82f6, #2563eb);
+      box-shadow: 0 4px 15px -3px rgba(59, 130, 246, 0.4);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px -3px rgba(59, 130, 246, 0.5);
+    }
+    .btn-secondary {
+      background-color: #4b5563; /* bg-gray-600 */
+    }
+    .btn-secondary:hover {
+      background-color: #374151; /* bg-gray-700 */
+    }
+    .btn-success {
+      background: linear-gradient(90deg, #10b981, #059669);
+      box-shadow: 0 4px 15px -3px rgba(16, 185, 129, 0.4);
+    }
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px -3px rgba(16, 185, 129, 0.5);
+    }
+    
+    /* Esconde telas por padrão */
+    #mainScreen, #historyScreen, #successScreen {
+      display: none;
+    }
+  </style>
+</head>
+<body class="fundo-gradiente min-h-screen text-gray-200 flex items-center justify-center p-4">
+
+  <!-- Container Principal -->
+  <div class="w-full max-w-md">
+
+    <!-- Cabeçalho (Logo e Nome) -->
+    <div id="appHeader" class="text-center mb-6 opacity-0 transition-opacity duration-500">
+      <!-- Logo da Instituição -->
+      <div class="flex justify-center mb-3">
+        <!-- Ajuste na moldura do logo: rounded-lg e object-contain -->
+        <div class="w-16 h-16 rounded-lg object-contain bg-white/10 p-1 border-2 border-gray-600 backdrop-blur-sm shadow-md">
+          <img id="appLogo" src="https://placehold.co/64x64/374151/FFFFFF?text=Logo" alt="Logo" class="w-full h-full rounded-md object-contain">
+        </div>
+      </div>
+      <!-- Nome da Instituição -->
+      <h1 id="appName" class="text-2xl font-semibold text-white shadow-sm">Carregando...</h1>
+    </div>
+
+    <!-- Card da Aplicação -->
+    <div id="appCard" class="app-card rounded-2xl shadow-2xl p-6 sm:p-8">
+
+      <!-- TELA DE LOGIN -->
+      <div id="loginScreen">
+        <h2 class="text-xl font-semibold text-center mb-6">Controle de Memorandos</h2>
+        <label for="nameInput" class="block text-sm font-medium mb-2 text-gray-300">Identifique-se para continuar:</label>
+        <input type="text" id="nameInput" class="input-futuristic w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 focus:outline-none" placeholder="Digite seu nome completo">
+        
+        <button id="loginButton" class="btn-primary w-full py-3 rounded-lg text-white font-semibold mt-6 transition-all duration-300 ease-in-out">
+          Entrar
+        </button>
+        <div id="loginSpinner" class="spinner mx-auto mt-6" style="display: none;"></div>
+        <p id="loginError" class="text-red-400 text-center mt-4"></p>
+      </div>
+
+      <!-- TELA PRINCIPAL (Solicitação) -->
+      <div id="mainScreen">
+        <h2 class="text-xl font-semibold text-center mb-2">Olá, <span id="userName" class="text-blue-300"></span>!</h2>
+        <p class="text-center text-gray-400 mb-6">Solicite seus números de memorando.</p>
+        
+        <!-- Seletor de Quantidade -->
+        <label class="block text-sm font-medium mb-2 text-gray-300">Quantos números você precisa?</label>
+        <div class="flex items-center justify-center space-x-3 mb-6">
+          <button onclick="adjustQuantity(-1)" class="btn-secondary font-bold w-12 h-12 rounded-full text-2xl flex items-center justify-center">-</button>
+          <input type="number" id="quantityInput" value="1" min="1" readonly class="input-futuristic w-20 h-12 rounded-lg text-white text-center text-xl font-semibold focus:outline-none">
+          <button onclick="adjustQuantity(1)" class="btn-secondary font-bold w-12 h-12 rounded-full text-2xl flex items-center justify-center">+</button>
+        </div>
+        
+        <label for="purposeInput" class="block text-sm font-medium mb-2 text-gray-300">Finalidade (Descrição):</label>
+        <textarea id="purposeInput" rows="3" class="input-futuristic w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 focus:outline-none resize-none" placeholder="Ex: Referente ao ofício X..."></textarea>
+        
+        <button id="requestButton" class="btn-success w-full py-3 rounded-lg text-white font-semibold mt-6 transition-all duration-300 ease-in-out">
+          Solicitar Números
+        </button>
+        <button id="historyButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold mt-3 transition-all duration-300 ease-in-out">
+          Meu Histórico
+        </button>
+        <div id="requestSpinner" class="spinner mx-auto mt-6" style="display: none;"></div>
+        <p id="requestError" class="text-red-400 text-center mt-4"></p>
+      </div>
+
+      <!-- TELA DE SUCESSO -->
+      <div id="successScreen">
+        <h2 class="text-xl font-bold text-center text-green-400 mb-4">Números Gerados!</h2>
+        <p class="text-center text-gray-300 mb-6">Os seguintes números foram registrados para você:</p>
+        
+        <!-- Números Gerados (Cápsulas) -->
+        <div id="generatedNumbers" class="flex flex-wrap justify-center gap-2 mb-6">
+          <!-- Ex: <span class="bg-gray-700 text-white font-semibold px-4 py-2 rounded-full text-lg">001</span> -->
+        </div>
+        
+        <button id="newRequestButton" class="btn-primary w-full py-3 rounded-lg text-white font-semibold mt-6 transition-all duration-300 ease-in-out">
+          Solicitar Mais
+        </button>
+      </div>
+
+      <!-- TELA DE HISTÓRICO -->
+      <div id="historyScreen">
+        <h2 class="text-xl font-semibold text-center mb-6">Meu Histórico</h2>
+        
+        <div id="historySpinner" class="spinner mx-auto mt-6"></div>
+        
+        <!-- Container do Histórico -->
+        <div id="historyContent" class="max-h-80 overflow-y-auto space-y-3 pr-2">
+          <!-- Registros de histórico serão injetados aqui -->
+          <!-- Ex:
+          <div class="bg-gray-900/50 p-3 rounded-lg border border-gray-700">
+            <p class="text-sm text-gray-400">10/11/2025, 14:30:00</p>
+            <p class="font-semibold text-lg text-blue-300">Nº 001</p>
+            <p class="text-gray-300">Finalidade: Teste</p>
+          </div>
+          -->
+        </div>
+        
+        <button id="backButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold mt-6 transition-all duration-300 ease-in-out">
+          Voltar
+        </button>
+      </div>
+
+    </div>
+    
+    <!-- Rodapé Desenvolvedor -->
+    <footer class="text-center text-gray-400 text-sm mt-6 opacity-80">
+      Desenvolvido por Thiego Pereira
+    </footer>
+    
+  </div> <!-- Fim do Container Principal -->
+
+
+  <script>
+    // ========================================================================
+    // VARIÁVEIS GLOBAIS
+    // ========================================================================
+    
+    // !!! IMPORTANTE !!!
+    // Esta é a URL da sua API do Google Apps Script (do "Code.gs (API)")
+    // Ela foi obtida após a "Nova Implantação" do tipo "Qualquer pessoa"
+    const API_URL = "https://script.google.com/macros/s/AKfycbx1saGajeJTxGsdHjf807t4auDLz26r1FbARuXGL3ftbE8XcHqiqYc3hm4wH9tUMvLhAg/exec";
+
+    // Armazena o nome do usuário logado
+    let currentUserName = '';
+
+    // Seletores de Elementos da UI
+    const loginScreen = document.getElementById('loginScreen');
+    const mainScreen = document.getElementById('mainScreen');
+    const historyScreen = document.getElementById('historyScreen');
+    const successScreen = document.getElementById('successScreen');
+    
+    const appHeader = document.getElementById('appHeader');
+    const appName = document.getElementById('appName');
+    const appLogo = document.getElementById('appLogo');
+    
+    const loginButton = document.getElementById('loginButton');
+    const loginSpinner = document.getElementById('loginSpinner');
+    const loginError = document.getElementById('loginError');
+    const nameInput = document.getElementById('nameInput');
+    
+    const requestButton = document.getElementById('requestButton');
+    const historyButton = document.getElementById('historyButton');
+    const requestSpinner = document.getElementById('requestSpinner');
+    const requestError = document.getElementById('requestError');
+    const userNameSpan = document.getElementById('userName');
+    
+    const quantityInput = document.getElementById('quantityInput');
+    const purposeInput = document.getElementById('purposeInput');
+    
+    const generatedNumbers = document.getElementById('generatedNumbers');
+    const newRequestButton = document.getElementById('newRequestButton');
+    
+    const historyContent = document.getElementById('historyContent');
+    const historySpinner = document.getElementById('historySpinner');
+    const backButton = document.getElementById('backButton');
+
+    // ========================================================================
+    // FUNÇÃO HELPER (AJUDA): callApi(method, params)
+    // ========================================================================
+    
+    /**
+     * Função central para fazer chamadas à nossa API do Google Script.
+     * Lida com GET e POST e trata a resposta JSON.
+     * @param {string} method - 'GET' ou 'POST'.
+     * @param {object} params - Para GET: { action: '...', name: '...' }.
+     * Para POST: { action: '...', payload: { ... } }.
+     * @returns {Promise<object>} O objeto 'data' da resposta da API.
+     */
+    async function callApi(method, params) {
+      let url = API_URL;
+      const options = {
+        method: method,
+        redirect: 'follow',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8', // Corrigido para utf-8 (padrão)
+        },
+      };
+
+      if (method === 'GET') {
+        // Para GET, transforma os parâmetros em URL query string
+        // Ex: { action: 'checkUser', name: 'Thiego' } -> ?action=checkUser&name=Thiego
+        const query = new URLSearchParams(params).toString();
+        url = `${API_URL}?${query}`;
+      } else if (method === 'POST') {
+        // Para POST, envia os parâmetros no corpo (body) como string JSON
+        options.body = JSON.stringify(params);
+        // O Apps Script lida com POST de forma diferente, ele não gosta de 'redirect: follow' às vezes.
+        // Mas para fetch padrão, 'follow' é o normal.
+      }
+
+      try {
+        const response = await fetch(url, options);
+        
+        // O Apps Script pode retornar um JSON inválido em caso de erro de servidor
+        // Então lemos como texto primeiro para verificar
+        const textResponse = await response.text();
+        let data;
+
+        try {
+          data = JSON.parse(textResponse);
+        } catch (e) {
+          console.error("Erro ao parsear JSON:", textResponse);
+          // Se o JSON falhar, pode ser um erro HTML do Google
+          // Se o texto contiver "não pôde ser encontrado", é um erro de deploy
+          if (textResponse.includes("não pôde ser encontrado")) {
+            throw new Error("Erro de API: Script não encontrado. Verifique a URL da API.");
+          }
+          throw new Error("Resposta inesperada do servidor. Verifique o console do Apps Script.");
+        }
+        
+        if (data.status === 'success') {
+          return data.data; // Retorna apenas o objeto 'data'
+        } else {
+          // Lança um erro com a mensagem da API
+          throw new Error(data.message);
+        }
+      } catch (error) {
+        console.error(`Erro na chamada API (${method}):`, error);
+        // Propaga o erro para ser tratado pela função chamadora (ex: handleLogin)
+        throw error;
+      }
+    }
+
+    // ========================================================================
+    // FUNÇÕES DA APLICAÇÃO
+    // ========================================================================
+
+    /**
+     * Carrega os detalhes do app (logo e nome) assim que a página abre.
+     */
+    async function loadAppDetails() {
+      try {
+        const data = await callApi('GET', { action: 'getAppDetails' });
+        appName.textContent = data.appName;
+        appLogo.src = data.logoUrl;
+        appHeader.classList.remove('opacity-0');
+      } catch (error) {
+        appName.textContent = "Erro ao Carregar";
+        appHeader.classList.remove('opacity-0');
+        console.error(error);
+      }
+    }
+
+    /**
+     * Troca qual tela está visível.
+     * @param {string} screenId - O ID da tela para mostrar ('login', 'main', 'history', 'success').
+     */
+    function showScreen(screenId) {
+      loginScreen.style.display = (screenId === 'login') ? 'block' : 'none';
+      mainScreen.style.display = (screenId === 'main') ? 'block' : 'none';
+      historyScreen.style.display = (screenId === 'history') ? 'block' : 'none';
+      successScreen.style.display = (screenId === 'success') ? 'block' : 'none';
+      
+      // Limpa erros anteriores ao trocar de tela
+      loginError.textContent = '';
+      requestError.textContent = '';
+    }
+
+    /**
+     * Lida com a tentativa de login.
+     */
+    async function handleLogin() {
+      const name = nameInput.value;
+      if (!name) {
+        loginError.textContent = 'Por favor, digite seu nome.';
+        return;
+      }
+
+      loginButton.style.display = 'none';
+      loginSpinner.style.display = 'block';
+      loginError.textContent = '';
+
+      try {
+        const userExists = await callApi('GET', {
+          action: 'checkUser',
+          name: name
+        });
+        
+        if (userExists) {
+          currentUserName = name;
+          userNameSpan.textContent = name.split(' ')[0]; // Mostra só o primeiro nome
+          showScreen('main');
+        } else {
+          loginError.textContent = 'Usuário não cadastrado. Fale com o administrador.';
+        }
+      } catch (error) {
+        loginError.textContent = `Erro: ${error.message}`;
+      } finally {
+        loginButton.style.display = 'block';
+        loginSpinner.style.display = 'none';
+      }
+    }
+
+    /**
+     * Lida com a solicitação de números.
+     */
+    async function handleRequest() {
+      const quantity = quantityInput.value;
+      const purpose = purposeInput.value;
+
+      if (!purpose) {
+        requestError.textContent = 'Por favor, preencha a finalidade.';
+        return;
+      }
+
+      requestButton.style.display = 'none';
+      historyButton.style.display = 'none';
+      requestSpinner.style.display = 'block';
+      requestError.textContent = '';
+
+      try {
+        const payload = {
+          userName: currentUserName,
+          quantity: parseInt(quantity, 10),
+          purpose: purpose
+        };
+        
+        const generated = await callApi('POST', {
+          action: 'requestMemoNumbers',
+          payload: payload
+        });
+        
+        // Sucesso!
+        onRequestSuccess(generated);
+        
+      } catch (error) {
+        requestError.textContent = `Erro: ${error.message}`;
+      } finally {
+        requestButton.style.display = 'block';
+        historyButton.style.display = 'block';
+        requestSpinner.style.display = 'none';
+      }
+    }
+    
+    /**
+     * Exibe a tela de sucesso com os números gerados.
+     * @param {Array<string>} numbers - Array de números (ex: ["001", "002"]).
+     */
+    function onRequestSuccess(numbers) {
+      // Limpa números antigos
+      generatedNumbers.innerHTML = ''; 
+      
+      // Cria as "cápsulas" (pills) para cada número
+      numbers.forEach(num => {
+        const pill = document.createElement('span');
+        pill.className = 'bg-gray-700/50 border border-gray-600 text-white font-semibold px-4 py-2 rounded-full text-lg shadow-md';
+        pill.textContent = num;
+        generatedNumbers.appendChild(pill);
+      });
+      
+      showScreen('success');
+    }
+
+    /**
+     * Busca e exibe o histórico do usuário.
+     */
+    async function showHistory() {
+      showScreen('history');
+      historyContent.innerHTML = '';
+      historySpinner.style.display = 'block';
+
+      try {
+        const history = await callApi('GET', {
+          action: 'getUserHistory',
+          name: currentUserName
+        });
+
+        if (history.length === 0) {
+          historyContent.innerHTML = '<p class="text-center text-gray-400">Você ainda não possui registros.</p>';
+        } else {
+          history.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'bg-gray-900/50 p-3 rounded-lg border border-gray-700/50';
+            
+            // Formata a data (se for válida)
+            let date = 'Data inválida';
+            try {
+              date = new Date(item.timestamp).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }); // Ajuste fuso horário se necessário
+            } catch(e) {}
+            
+            div.innerHTML = `
+              <p class="text-sm text-gray-400">${date}</p>
+              <p class="font-semibold text-lg text-blue-300">Nº ${item.memoNumber}</p>
+              <p class="text-gray-300 whitespace-pre-wrap">Finalidade: ${item.purpose}</p>
+            `;
+            historyContent.appendChild(div);
+          });
+        }
+      } catch (error) {
+        historyContent.innerHTML = `<p class="text-center text-red-400">Erro ao buscar histórico: ${error.message}</p>`;
+      } finally {
+        historySpinner.style.display = 'none';
+      }
+    }
+
+    /**
+     * Controla os botões +/- do seletor de quantidade.
+     * @param {number} amount - (+1) ou (-1).
+     */
+    function adjustQuantity(amount) {
+      let currentValue = parseInt(quantityInput.value, 10);
+      currentValue += amount;
+      if (currentValue < 1) {
+        currentValue = 1; // Não permite menos que 1
+      }
+      quantityInput.value = currentValue;
+    }
+
+    // ========================================================================
+    // EVENT LISTENERS (Gatilhos)
+    // ========================================================================
+    
+    // Inicia o app assim que a página carrega
+    document.addEventListener('DOMContentLoaded', () => {
+      loadAppDetails();
+      showScreen('login');
+    });
+
+    // Botão de Login
+    loginButton.addEventListener('click', handleLogin);
+    // Permite "Entrar" com a tecla Enter
+    nameInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleLogin();
+    });
+
+    // Botão de Solicitar
+    requestButton.addEventListener('click', handleRequest);
+    
+    // Botão Meu Histórico
+    historyButton.addEventListener('click', showHistory);
+    
+    // Botão Voltar (do Histórico)
+    backButton.addEventListener('click', () => {
+      showScreen('main');
+    });
+    
+    // Botão Solicitar Mais (da tela de Sucesso)
+    newRequestButton.addEventListener('click', () => {
+      // Reseta os campos
+      quantityInput.value = 1;
+      purposeInput.value = '';
+      showScreen('main');
+    });
+
+  </script>
+
+</body>
+</html>
