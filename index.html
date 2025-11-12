@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Controle de Memorandos</title>
+  <title>Controle de Documentos</title>
   <!-- Carrega o CSS do Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Fonte personalizada (Poppins) do Google Fonts -->
@@ -65,19 +65,21 @@
     }
 
     /* Remove as setas padrão do input[type=number] */
-    /* Chrome, Safari, Edge, Opera */
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
       -webkit-appearance: none;
       margin: 0;
     }
-    /* Firefox */
     input[type=number] {
       -moz-appearance: textfield;
       appearance: textfield;
     }
     
     /* Estilo customizado para botões */
+    .btn {
+      transition: all 0.3s ease-in-out;
+      font-weight: 600; /* semibold */
+    }
     .btn-primary {
       background: linear-gradient(90deg, #3b82f6, #2563eb);
       box-shadow: 0 4px 15px -3px rgba(59, 130, 246, 0.4);
@@ -100,6 +102,17 @@
       transform: translateY(-2px);
       box-shadow: 0 6px 20px -3px rgba(16, 185, 129, 0.5);
     }
+
+    /* ATUALIZADO: Estilo para as Abas */
+    .btn-tab {
+      background-color: #4b5563; /* bg-gray-600 */
+      opacity: 0.7;
+    }
+    .btn-tab.active {
+      background: linear-gradient(90deg, #3b82f6, #2563eb);
+      box-shadow: 0 4px 15px -3px rgba(59, 130, 246, 0.4);
+      opacity: 1;
+    }
     
     /* Esconde telas por padrão */
     #mainScreen, #historyScreen, #successScreen {
@@ -116,7 +129,6 @@
     <div id="appHeader" class="text-center mb-6 opacity-0 transition-opacity duration-500">
       <!-- Logo da Instituição -->
       <div class="flex justify-center mb-3">
-        <!-- Ajuste na moldura do logo: rounded-lg e object-contain -->
         <div class="w-16 h-16 rounded-lg object-contain bg-white/10 p-1 border-2 border-gray-600 backdrop-blur-sm shadow-md">
           <img id="appLogo" src="https://placehold.co/64x64/374151/FFFFFF?text=Logo" alt="Logo" class="w-full h-full rounded-md object-contain">
         </div>
@@ -130,11 +142,11 @@
 
       <!-- TELA DE LOGIN -->
       <div id="loginScreen">
-        <h2 class="text-xl font-semibold text-center mb-6">Controle de Memorandos</h2>
+        <h2 class="text-xl font-semibold text-center mb-6">Controle de Documentos</h2>
         <label for="nameInput" class="block text-sm font-medium mb-2 text-gray-300">Identifique-se para continuar:</label>
         <input type="text" id="nameInput" class="input-futuristic w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 focus:outline-none" placeholder="Digite seu nome completo">
         
-        <button id="loginButton" class="btn-primary w-full py-3 rounded-lg text-white font-semibold mt-6 transition-all duration-300 ease-in-out">
+        <button id="loginButton" class="btn btn-primary w-full py-3 rounded-lg text-white mt-6">
           Entrar
         </button>
         <div id="loginSpinner" class="spinner mx-auto mt-6" style="display: none;"></div>
@@ -144,23 +156,33 @@
       <!-- TELA PRINCIPAL (Solicitação) -->
       <div id="mainScreen">
         <h2 class="text-xl font-semibold text-center mb-2">Olá, <span id="userName" class="text-blue-300"></span>!</h2>
-        <p class="text-center text-gray-400 mb-6">Solicite seus números de memorando.</p>
+        <p class="text-center text-gray-400 mb-6">Selecione o tipo de documento.</p>
+        
+        <!-- ATUALIZADO: Abas (Tabs) -->
+        <div class="grid grid-cols-2 gap-3 mb-6">
+          <button id="memoTab" class="btn btn-tab active py-3 rounded-lg text-white">
+            Memorando
+          </button>
+          <button id="oficioTab" class="btn btn-tab py-3 rounded-lg text-white">
+            Ofício
+          </button>
+        </div>
         
         <!-- Seletor de Quantidade -->
         <label class="block text-sm font-medium mb-2 text-gray-300">Quantos números você precisa?</label>
         <div class="flex items-center justify-center space-x-3 mb-6">
-          <button onclick="adjustQuantity(-1)" class="btn-secondary font-bold w-12 h-12 rounded-full text-2xl flex items-center justify-center">-</button>
+          <button onclick="adjustQuantity(-1)" class="btn btn-secondary font-bold w-12 h-12 rounded-full text-2xl flex items-center justify-center">-</button>
           <input type="number" id="quantityInput" value="1" min="1" readonly class="input-futuristic w-20 h-12 rounded-lg text-white text-center text-xl font-semibold focus:outline-none">
-          <button onclick="adjustQuantity(1)" class="btn-secondary font-bold w-12 h-12 rounded-full text-2xl flex items-center justify-center">+</button>
+          <button onclick="adjustQuantity(1)" class="btn btn-secondary font-bold w-12 h-12 rounded-full text-2xl flex items-center justify-center">+</button>
         </div>
         
         <label for="purposeInput" class="block text-sm font-medium mb-2 text-gray-300">Finalidade (Descrição):</label>
         <textarea id="purposeInput" rows="3" class="input-futuristic w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 focus:outline-none resize-none" placeholder="Ex: Referente ao ofício X..."></textarea>
         
-        <button id="requestButton" class="btn-success w-full py-3 rounded-lg text-white font-semibold mt-6 transition-all duration-300 ease-in-out">
+        <button id="requestButton" class="btn btn-success w-full py-3 rounded-lg text-white mt-6">
           Solicitar Números
         </button>
-        <button id="historyButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold mt-3 transition-all duration-300 ease-in-out">
+        <button id="historyButton" class="btn btn-secondary w-full py-3 rounded-lg text-white mt-3">
           Meu Histórico
         </button>
         <div id="requestSpinner" class="spinner mx-auto mt-6" style="display: none;"></div>
@@ -177,7 +199,7 @@
           <!-- Ex: <span class="bg-gray-700 text-white font-semibold px-4 py-2 rounded-full text-lg">001</span> -->
         </div>
         
-        <button id="newRequestButton" class="btn-primary w-full py-3 rounded-lg text-white font-semibold mt-6 transition-all duration-300 ease-in-out">
+        <button id="newRequestButton" class="btn btn-primary w-full py-3 rounded-lg text-white mt-6">
           Solicitar Mais
         </button>
       </div>
@@ -191,16 +213,9 @@
         <!-- Container do Histórico -->
         <div id="historyContent" class="max-h-80 overflow-y-auto space-y-3 pr-2">
           <!-- Registros de histórico serão injetados aqui -->
-          <!-- Ex:
-          <div class="bg-gray-900/50 p-3 rounded-lg border border-gray-700">
-            <p class="text-sm text-gray-400">10/11/2025, 14:30:00</p>
-            <p class="font-semibold text-lg text-blue-300">Nº 001</p>
-            <p class="text-gray-300">Finalidade: Teste</p>
-          </div>
-          -->
         </div>
         
-        <button id="backButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold mt-6 transition-all duration-300 ease-in-out">
+        <button id="backButton" class="btn btn-secondary w-full py-3 rounded-lg text-white mt-6">
           Voltar
         </button>
       </div>
@@ -221,12 +236,13 @@
     // ========================================================================
     
     // !!! IMPORTANTE !!!
-    // Esta é a URL da sua API do Google Apps Script (do "Code.gs (API)")
-    // Ela foi obtida após a "Nova Implantação" do tipo "Qualquer pessoa"
+    // Cole aqui a URL da sua API do Google Apps Script
     const API_URL = "https://script.google.com/macros/s/AKfycbx1saGajeJTxGsdHjf807t4auDLz26r1FbARuXGL3ftbE8XcHqiqYc3hm4wH9tUMvLhAg/exec";
 
     // Armazena o nome do usuário logado
     let currentUserName = '';
+    // ATUALIZADO: Armazena o tipo de documento selecionado
+    let currentDocumentType = 'Memorando'; // Começa com Memorando por padrão
 
     // Seletores de Elementos da UI
     const loginScreen = document.getElementById('loginScreen');
@@ -249,6 +265,10 @@
     const requestError = document.getElementById('requestError');
     const userNameSpan = document.getElementById('userName');
     
+    // ATUALIZADO: Seletores das Abas
+    const memoTab = document.getElementById('memoTab');
+    const oficioTab = document.getElementById('oficioTab');
+    
     const quantityInput = document.getElementById('quantityInput');
     const purposeInput = document.getElementById('purposeInput');
     
@@ -265,7 +285,6 @@
     
     /**
      * Função central para fazer chamadas à nossa API do Google Script.
-     * Lida com GET e POST e trata a resposta JSON.
      * @param {string} method - 'GET' ou 'POST'.
      * @param {object} params - Para GET: { action: '...', name: '...' }.
      * Para POST: { action: '...', payload: { ... } }.
@@ -275,29 +294,22 @@
       let url = API_URL;
       const options = {
         method: method,
-        redirect: 'follow',
+        // redirect: 'follow', // REMOVIDO: Pode causar "Failed to fetch" (CORS redirect)
         headers: {
-          'Content-Type': 'text/plain;charset=utf-8', // Corrigido para utf-8 (padrão)
+          'Content-Type': 'text/plain;charset=utf-8',
         },
       };
 
       if (method === 'GET') {
-        // Para GET, transforma os parâmetros em URL query string
-        // Ex: { action: 'checkUser', name: 'Thiego' } -> ?action=checkUser&name=Thiego
         const query = new URLSearchParams(params).toString();
         url = `${API_URL}?${query}`;
       } else if (method === 'POST') {
-        // Para POST, envia os parâmetros no corpo (body) como string JSON
         options.body = JSON.stringify(params);
-        // O Apps Script lida com POST de forma diferente, ele não gosta de 'redirect: follow' às vezes.
-        // Mas para fetch padrão, 'follow' é o normal.
       }
 
       try {
         const response = await fetch(url, options);
         
-        // O Apps Script pode retornar um JSON inválido em caso de erro de servidor
-        // Então lemos como texto primeiro para verificar
         const textResponse = await response.text();
         let data;
 
@@ -305,8 +317,6 @@
           data = JSON.parse(textResponse);
         } catch (e) {
           console.error("Erro ao parsear JSON:", textResponse);
-          // Se o JSON falhar, pode ser um erro HTML do Google
-          // Se o texto contiver "não pôde ser encontrado", é um erro de deploy
           if (textResponse.includes("não pôde ser encontrado")) {
             throw new Error("Erro de API: Script não encontrado. Verifique a URL da API.");
           }
@@ -316,12 +326,10 @@
         if (data.status === 'success') {
           return data.data; // Retorna apenas o objeto 'data'
         } else {
-          // Lança um erro com a mensagem da API
           throw new Error(data.message);
         }
       } catch (error) {
         console.error(`Erro na chamada API (${method}):`, error);
-        // Propaga o erro para ser tratado pela função chamadora (ex: handleLogin)
         throw error;
       }
     }
@@ -348,7 +356,7 @@
 
     /**
      * Troca qual tela está visível.
-     * @param {string} screenId - O ID da tela para mostrar ('login', 'main', 'history', 'success').
+     * @param {string} screenId - O ID da tela para mostrar.
      */
     function showScreen(screenId) {
       loginScreen.style.display = (screenId === 'login') ? 'block' : 'none';
@@ -356,7 +364,6 @@
       historyScreen.style.display = (screenId === 'history') ? 'block' : 'none';
       successScreen.style.display = (screenId === 'success') ? 'block' : 'none';
       
-      // Limpa erros anteriores ao trocar de tela
       loginError.textContent = '';
       requestError.textContent = '';
     }
@@ -417,15 +424,15 @@
         const payload = {
           userName: currentUserName,
           quantity: parseInt(quantity, 10),
-          purpose: purpose
+          purpose: purpose,
+          tipo: currentDocumentType // ATUALIZADO: Envia o tipo selecionado
         };
         
         const generated = await callApi('POST', {
-          action: 'requestMemoNumbers',
+          action: 'requestNumbers', // ATUALIZADO: Nome da Ação
           payload: payload
         });
         
-        // Sucesso!
         onRequestSuccess(generated);
         
       } catch (error) {
@@ -442,10 +449,8 @@
      * @param {Array<string>} numbers - Array de números (ex: ["001", "002"]).
      */
     function onRequestSuccess(numbers) {
-      // Limpa números antigos
       generatedNumbers.innerHTML = ''; 
       
-      // Cria as "cápsulas" (pills) para cada número
       numbers.forEach(num => {
         const pill = document.createElement('span');
         pill.className = 'bg-gray-700/50 border border-gray-600 text-white font-semibold px-4 py-2 rounded-full text-lg shadow-md';
@@ -477,16 +482,19 @@
             const div = document.createElement('div');
             div.className = 'bg-gray-900/50 p-3 rounded-lg border border-gray-700/50';
             
-            // Formata a data (se for válida)
             let date = 'Data inválida';
             try {
-              date = new Date(item.timestamp).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }); // Ajuste fuso horário se necessário
+              date = new Date(item.timestamp).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
             } catch(e) {}
             
+            // ATUALIZADO: Mostra o TIPO e o NÚMERO
             div.innerHTML = `
               <p class="text-sm text-gray-400">${date}</p>
-              <p class="font-semibold text-lg text-blue-300">Nº ${item.memoNumber}</p>
-              <p class="text-gray-300 whitespace-pre-wrap">Finalidade: ${item.purpose}</p>
+              <div class="flex justify-between items-center">
+                <span class="font-semibold text-lg text-blue-300">${item.memoNumber}</span>
+                <span class="text-xs font-medium ${item.tipo === 'Ofício' ? 'bg-green-600/50 text-green-300' : 'bg-blue-600/50 text-blue-300'} px-2 py-0.5 rounded-full">${item.tipo || 'N/A'}</span>
+              </div>
+              <p class="text-gray-300 whitespace-pre-wrap mt-1">Finalidade: ${item.purpose}</p>
             `;
             historyContent.appendChild(div);
           });
@@ -506,7 +514,7 @@
       let currentValue = parseInt(quantityInput.value, 10);
       currentValue += amount;
       if (currentValue < 1) {
-        currentValue = 1; // Não permite menos que 1
+        currentValue = 1;
       }
       quantityInput.value = currentValue;
     }
@@ -523,7 +531,6 @@
 
     // Botão de Login
     loginButton.addEventListener('click', handleLogin);
-    // Permite "Entrar" com a tecla Enter
     nameInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') handleLogin();
     });
@@ -541,10 +548,22 @@
     
     // Botão Solicitar Mais (da tela de Sucesso)
     newRequestButton.addEventListener('click', () => {
-      // Reseta os campos
       quantityInput.value = 1;
       purposeInput.value = '';
       showScreen('main');
+    });
+
+    // ATUALIZADO: Listeners das Abas
+    memoTab.addEventListener('click', () => {
+      currentDocumentType = 'Memorando';
+      memoTab.classList.add('active');
+      oficioTab.classList.remove('active');
+    });
+
+    oficioTab.addEventListener('click', () => {
+      currentDocumentType = 'Ofício';
+      oficioTab.classList.add('active');
+      memoTab.classList.remove('active');
     });
 
   </script>
