@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
@@ -319,7 +319,6 @@
     
     // !!! IMPORTANTE !!!
     // Esta é a URL da sua API do Google Apps Script (do "Code.gs (API)")
-    // Obtenha-a após a "Nova Implantação" do tipo "Qualquer pessoa"
     const API_URL = "https://script.google.com/macros/s/AKfycbx1saGajeJTxGsdHjf807t4auDLz26r1FbARuXGL3ftbE8XcHqiqYc3hm4wH9tUMvLhAg/exec";
 
     // Armazena o nome do usuário logado
@@ -373,59 +372,90 @@
     let pendingAction = null;
 
     // ========================================================================
+    // FUNÇÃO HELPER (AJUDA): sleep(ms)
+    // ========================================================================
+    
+    /**
+     * Pausa a execução por um determinado número de milissegundos.
+     * @param {number} ms - O tempo para "dormir" em milissegundos.
+     */
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    // ========================================================================
     // FUNÇÃO HELPER (AJUDA): callApi(action, payload)
     // ========================================================================
     
     /**
-     * ATUALIZADO: Função central para fazer chamadas à nossa API.
-     * Agora usa SEMPRE o método 'POST'.
+     * ATUALIZADO (v6): Função central para fazer chamadas à nossa API.
+     * Agora usa SEMPRE o método 'POST' e tem LÓGICA DE RETENTATIVA.
      * @param {string} action - A ação a ser executada (ex: 'getAppDetails', 'checkUser').
      * @param {object} payload - O objeto de dados a ser enviado (ex: { name: 'Thiego' }).
      * @returns {Promise<object>} O objeto 'data' da resposta da API.
      */
     async function callApi(action, payload = {}) {
+      const MAX_RETRIES = 3; // Tentar no máximo 3 vezes
+      const RETRY_DELAY = 2000; // Esperar 2 segundos entre tentativas
       const url = API_URL;
-      const options = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'text/plain', // O Apps Script prefere 'text/plain'
-        },
-        body: JSON.stringify({
-          action: action,
-          payload: payload 
-        }),
-      };
 
-      try {
-        const response = await fetch(url, options);
-        
-        // Lê a resposta como texto
-        const textResponse = await response.text();
-        let data;
-
+      // Loop de retentativas
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
-          data = JSON.parse(textResponse);
-        } catch (e) {
-          console.error("Erro ao parsear JSON:", textResponse);
-          if (textResponse.includes("não pôde ser encontrado")) {
-            throw new Error("Erro de API: Script não encontrado. Verifique a URL da API.");
+          const options = {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'text/plain', 
+            },
+            body: JSON.stringify({
+              action: action,
+              payload: payload 
+            }),
+          };
+
+          const response = await fetch(url, options);
+          
+          const textResponse = await response.text();
+          let data;
+
+          try {
+            data = JSON.parse(textResponse);
+          } catch (e) {
+            console.error(`Tentativa ${attempt}: Erro ao parsear JSON:`, textResponse);
+            // Se o JSON falhou, pode ser um erro HTML do Google
+            if (textResponse.includes("não pôde ser encontrado")) {
+              throw new Error("Erro de API: Script não encontrado. Verifique a URL.");
+            }
+             if (textResponse.includes("TypeError:") || textResponse.includes("ReferenceError:")) {
+               throw new Error("Erro interno no servidor (Apps Script). Verifique os logs.");
+            }
+            throw new Error("Resposta inesperada do servidor.");
           }
-          if (textResponse.includes("TypeError:") || textResponse.includes("ReferenceError:")) {
-             throw new Error("Erro interno no servidor (Apps Script). Verifique os logs.");
+          
+          if (data.status === 'success') {
+            return data.data; // SUCESSO! Retorna os dados.
+          } else {
+            // Se o servidor respondeu com um erro conhecido (ex: "Usuário não encontrado")
+            throw new Error(data.message);
           }
-          throw new Error("Resposta inesperada do servidor.");
+
+        } catch (error) {
+          console.error(`Erro na chamada API (Tentativa ${attempt}/${MAX_RETRIES}, Ação: ${action}):`, error);
+
+          // Verifica se foi um erro de rede (ex: "Failed to fetch")
+          // Este é o erro que queremos tentar de novo
+          if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+            if (attempt === MAX_RETRIES) {
+              // Se foi a última tentativa, desiste e lança o erro
+              throw new Error(`Falha ao conectar à API após ${MAX_RETRIES} tentativas. O servidor pode estar offline ou em "cold start".`);
+            }
+            // Se não foi a última tentativa, espera e tenta de novo
+            console.warn(`API "cold start" detectado. Tentando novamente em ${RETRY_DELAY / 1000}s...`);
+            await sleep(RETRY_DELAY);
+          } else {
+            // Se foi outro tipo de erro (ex: Erro de JSON, Erro de API),
+            // não adianta tentar de novo. Propaga o erro.
+            throw error;
+          }
         }
-        
-        if (data.status === 'success') {
-          return data.data; // Retorna apenas o objeto 'data'
-        } else {
-          // Lança um erro com a mensagem da API
-          throw new Error(data.message);
-        }
-      } catch (error) {
-        console.error(`Erro na chamada API (Ação: ${action}):`, error);
-        // Propaga o erro para ser tratado pela função chamadora
-        throw error;
       }
     }
 
@@ -438,7 +468,6 @@
      */
     async function loadAppDetails() {
       try {
-        // ATUALIZADO: Chama a API usando a nova estrutura
         const data = await callApi('getAppDetails');
         appName.textContent = data.appName;
         appLogo.src = data.logoUrl;
@@ -447,8 +476,8 @@
         appName.textContent = "Erro ao Carregar";
         appHeader.classList.remove('opacity-0');
         console.error(error);
-        // Mostra o erro de CORS/Rede na tela de login
-        loginError.textContent = `Falha ao conectar à API: ${error.message}. Verifique a URL e a implantação.`;
+        // Agora mostra o erro de forma mais inteligente (ex: "Falha ao conectar...")
+        loginError.textContent = `${error.message}`;
       }
     }
 
@@ -469,23 +498,20 @@
      * Lida com a tentativa de login.
      */
     async function handleLogin() {
+      // ... (A lógica interna desta função não muda)
       const name = nameInput.value;
       if (!name) {
         loginError.textContent = 'Por favor, digite seu nome.';
         return;
       }
-
       loginButton.style.display = 'none';
       loginSpinner.style.display = 'block';
       loginError.textContent = '';
-
       try {
-        // ATUALIZADO: Chama a API usando a nova estrutura
         const userExists = await callApi('checkUser', { name: name });
-        
         if (userExists) {
           currentUserName = name;
-          userNameSpan.textContent = name.split(' ')[0]; // Mostra só o primeiro nome
+          userNameSpan.textContent = name.split(' ')[0];
           showScreen('main');
         } else {
           loginError.textContent = 'Usuário não cadastrado. Fale com o administrador.';
@@ -502,33 +528,26 @@
      * Lida com a solicitação de números.
      */
     async function handleRequest() {
+      // ... (A lógica interna desta função não muda)
       const quantity = quantityInput.value;
       const purpose = purposeInput.value;
-
       if (!purpose) {
         requestError.textContent = 'Por favor, preencha a finalidade.';
         return;
       }
-
       requestButton.style.display = 'none';
       historyButton.style.display = 'none';
       requestSpinner.style.display = 'block';
       requestError.textContent = '';
-
       try {
-        // ATUALIZADO: O payload já está no formato correto
         const payload = {
           userName: currentUserName,
           quantity: parseInt(quantity, 10),
           purpose: purpose,
           tipo: currentDocumentType 
         };
-        
         const generated = await callApi('requestNumbers', payload);
-        
-        // Sucesso!
         onRequestSuccess(generated);
-        
       } catch (error) {
         requestError.textContent = `Erro: ${error.message}`;
       } finally {
@@ -557,70 +576,52 @@
      * Busca e exibe o histórico do usuário.
      */
     async function showHistory() {
+      // ... (A lógica interna desta função não muda)
       showScreen('history');
       historyContent.innerHTML = '';
       historySpinner.style.display = 'block';
-
       try {
-        // ATUALIZADO: Chama a API usando a nova estrutura
         const history = await callApi('getUserHistory', { name: currentUserName });
-
         historySpinner.style.display = 'none';
-        
         if (history.length === 0) {
           historyContent.innerHTML = '<p class="text-center text-gray-400">Você ainda não possui registros.</p>';
         } else {
-          // Constrói o HTML usando DOM
           history.forEach(item => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'history-item bg-gray-900/50 p-3 rounded-lg border border-gray-700/50';
             itemDiv.id = `item-${item.rowNumber}`; 
-            
             const isCanceled = item.status === 'Cancelado';
             if (isCanceled) {
               itemDiv.classList.add('canceled');
             }
-
-            // Formata a data
             let date = 'Data inválida';
             try {
               date = new Date(item.timestamp).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }); 
             } catch(e) {}
-            
             const contentDiv = document.createElement('div');
             contentDiv.className = 'flex justify-between items-start';
-
-            // Informações (Esquerda)
             const infoDiv = document.createElement('div');
             infoDiv.innerHTML = `
               <p class="text-sm text-gray-400">${date}</p>
               <p class="font-semibold text-lg text-blue-300 memo-number">Nº ${item.memoNumber} (${item.tipo})</p>
               <p class="text-gray-300 whitespace-pre-wrap">Finalidade: ${item.purpose}</p>
             `;
-            
             contentDiv.appendChild(infoDiv);
-
-            // Botão (Direita) ou Status Cancelado
             if (isCanceled) {
               const statusP = document.createElement('p');
               statusP.className = 'text-xs text-red-400 font-semibold mt-2';
               statusP.textContent = 'CANCELADO';
               infoDiv.appendChild(statusP);
             } else {
-              // Adiciona o botão de cancelar se estiver 'Ativo'
               const cancelButton = document.createElement('button');
               cancelButton.className = 'btn-cancel flex-shrink-0';
               cancelButton.title = 'Cancelar este item';
-              cancelButton.innerHTML = '&times;'; // '×'
-              
-              // Adiciona o listener de clique
+              cancelButton.innerHTML = '&times;'; 
               cancelButton.addEventListener('click', () => {
                 handleCancelClick(item.rowNumber, item.memoNumber);
               });
-              
               contentDiv.appendChild(cancelButton);
             }
-
             itemDiv.appendChild(contentDiv);
             historyContent.appendChild(itemDiv);
           });
@@ -646,35 +647,27 @@
      * Executa o cancelamento (chamado pelo modal).
      */
     async function executeCancel(rowNumber) {
-      // Esconde o modal
+      // ... (A lógica interna desta função não muda)
       confirmModal.classList.remove('visible');
-      
       try {
-        // ATUALIZADO: Chama a API usando a nova estrutura
         const payload = {
           rowNumber: rowNumber,
           userName: currentUserName
         };
-
         const result = await callApi('cancelDocument', payload);
-
-        // Sucesso! Atualiza a UI.
         const itemDiv = document.getElementById(`item-${rowNumber}`);
         if (itemDiv) {
           itemDiv.classList.add('canceled');
           const btn = itemDiv.querySelector('.btn-cancel');
           if (btn) btn.remove();
-          
           const infoDiv = itemDiv.querySelector('.flex-shrink-0')?.parentNode || itemDiv.querySelector('div');
           const statusP = document.createElement('p');
           statusP.className = 'text-xs text-red-400 font-semibold mt-2';
           statusP.textContent = 'CANCELADO';
           infoDiv.appendChild(statusP);
         }
-
       } catch (error) {
         console.error("Erro ao cancelar:", error);
-        // Mostra um modal de erro
         modalTitle.textContent = 'Erro ao Cancelar';
         modalMessage.textContent = error.message;
         pendingAction = null; 
