@@ -7,262 +7,52 @@
   <!-- Título da Aplicação -->
   <title>Controle de Documentos</title>
   
-  <!-- === INÍCIO DAS NOVAS TAGS PWA (WEB APP) === -->
+  <!-- === INÍCIO DAS TAGS PWA (WEB APP) === -->
   
   <!-- 1. Tema da Barra de Endereço (para Android) -->
-  <!-- Muda a cor da barra de status do celular -->
   <meta name="theme-color" content="#1f2937">
 
   <!-- 2. Tags para iOS (iPhone/iPad) -->
-  <!-- Permite que o app rode em tela cheia -->
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <!-- Define o título que aparece sob o ícone -->
   <meta name="apple-mobile-web-app-title" content="ControleDocs">
-  <!-- Define o estilo da barra de status (preta) -->
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
   <!-- 3. Ícone Principal (para iOS e Android) -->
   <!-- 
-    NOTA: O ideal é ter um ícone real (ex: logo.png) alojado no GitHub junto com o seu index.html.
-    Como não temos um, vamos usar um ícone genérico "placehold.co" por enquanto.
-    Se você tiver o seu logo (ex: 192x192 pixels), substitua o 'href' abaixo.
+    IMPORTANTE: Agora você deve criar um ícone (ex: "icone-192.png") 
+    e colocá-lo na mesma pasta do seu index.html no GitHub.
   -->
-  <link rel="apple-touch-icon" href="https://placehold.co/192x192/3b82f6/FFFFFF?text=DOCS">
-  <link rel="icon" href="https://placehold.co/192x192/3b82f6/FFFFFF?text=DOCS">
+  <link rel="apple-touch-icon" href="icone-192.png">
+  <link rel="icon" href="icone-192.png">
 
-  <!-- 4. Manifest Embutido (para Android) -->
-  <!-- 
-    Isto simula um ficheiro manifest.json usando um "Data URL".
-    Ele diz ao Android como o app deve parecer e se comportar.
-  -->
-  <link rel="manifest" href="data:application/json,{
-    &quot;name&quot;: &quot;Controle de Documentos&quot;,
-    &quot;short_name&quot;: &quot;ControleDocs&quot;,
-    &quot;start_url&quot;: &quot;.&quot;,
-    &quot;display&quot;: &quot;standalone&quot;,
-    &quot;background_color&quot;: &quot;#111827&quot;,
-    &quot;theme_color&quot;: &quot;#1f2937&quot;,
-    &quot;description&quot;: &quot;Aplicativo para geração de Memorandos e Ofícios.&quot;,
-    &quot;icons&quot;: [
-      {
-        &quot;src&quot;: &quot;https://placehold.co/192x192/3b82f6/FFFFFF?text=DOCS&quot;,
-        &quot;sizes&quot;: &quot;192x192&quot;,
-        &quot;type&quot;: &quot;image/png&quot;
-      },
-      {
-        &quot;src&quot;: &quot;https://placehold.co/512x512/3b82f6/FFFFFF?text=DOCS&quot;,
-        &quot;sizes&quot;: &quot;512x512&quot;,
-        &quot;type&quot;: &quot;image/png&quot;
-      }
-    ]
-  }">
+  <!-- 4. Manifesto (agora um ficheiro real) -->
+  <link rel="manifest" href="manifest.json">
   
-  <!-- === FIM DAS NOVAS TAGS PWA === -->
+  <!-- === FIM DAS TAGS PWA === -->
 
   <!-- Carrega o CSS do Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Carrega o nosso CSS personalizado -->
+  <link rel="stylesheet" href="style.css">
+  
   <!-- Fonte personalizada (Poppins) do Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <style>
-    /* Aplica a fonte Poppins como padrão */
-    body {
-      font-family: 'Poppins', sans-serif;
-    }
-    
-    /* Fundo gradiente futurista */
-    .fundo-gradiente {
-      background: linear-gradient(-45deg, #1f2937, #111827, #312e81, #1e3a8a);
-      background-size: 400% 400%;
-      animation: gradientBG 15s ease infinite;
-    }
-    @keyframes gradientBG {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    /* Estilo para o spinner (loading) */
-    .spinner {
-      border: 4px solid rgba(255, 255, 255, 0.2);
-      border-left-color: #ffffff;
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* Estilo para o card principal (efeito "glassmorphism") */
-    .app-card {
-      background-color: rgba(31, 41, 55, 0.5); /* bg-gray-800 com 50% de opacidade */
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    }
-    
-    /* Estilo customizado para inputs (visual futurista) */
-    .input-futuristic {
-      background-color: rgba(17, 24, 39, 0.6); /* bg-gray-900 com 60% opacidade */
-      border: 1px solid rgba(75, 85, 99, 0.8); /* border-gray-600 com 80% opacidade */
-    }
-    .input-futuristic:focus {
-      background-color: rgba(17, 24, 39, 0.9); /* bg-gray-900 com 90% opacidade */
-      border-color: rgba(59, 130, 246, 0.8); /* border-blue-500 com 80% opacidade */
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
-    }
-
-    /* Remove as setas padrão do input[type=number] */
-    input::-webkit-outer-spin-button,
-    input::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    input[type=number] {
-      -moz-appearance: textfield;
-      appearance: textfield;
-    }
-    
-    /* Estilo customizado para botões */
-    .btn-primary {
-      background: linear-gradient(90deg, #3b82f6, #2563eb);
-      box-shadow: 0 4px 15px -3px rgba(59, 130, 246, 0.4);
-    }
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px -3px rgba(59, 130, 246, 0.5);
-    }
-    .btn-secondary {
-      background-color: #4b5563; /* bg-gray-600 */
-    }
-    .btn-secondary:hover {
-      background-color: #374151; /* bg-gray-700 */
-    }
-    .btn-success {
-      background: linear-gradient(90deg, #10b981, #059669);
-      box-shadow: 0 4px 15px -3px rgba(16, 185, 129, 0.4);
-    }
-    .btn-success:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px -3px rgba(16, 185, 129, 0.5);
-    }
-    .btn-danger {
-      background: linear-gradient(90deg, #ef4444, #dc2626);
-      box-shadow: 0 4px 15px -3px rgba(239, 68, 68, 0.4);
-    }
-    .btn-danger:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px -3px rgba(239, 68, 68, 0.5);
-    }
-    
-    /* Botão de Cancelar (Histórico) */
-    .btn-cancel {
-      background-color: #4b5563; /* bg-gray-600 */
-      color: #e5e7eb; /* text-gray-200 */
-      font-weight: 700;
-      width: 32px;
-      height: 32px;
-      border-radius: 9999px; /* rounded-full */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      line-height: 1;
-      transition: all 0.2s;
-    }
-    .btn-cancel:hover {
-      background-color: #ef4444; /* hover:bg-red-500 */
-      color: #ffffff;
-      transform: scale(1.1);
-    }
-
-    /* Abas de Tipo de Documento */
-    .btn-tab {
-      flex: 1;
-      padding-top: 0.75rem;
-      padding-bottom: 0.75rem;
-      border-radius: 0.5rem; /* rounded-lg */
-      font-weight: 600; /* font-semibold */
-      color: #d1d5db; /* text-gray-300 */
-      background-color: #374151; /* bg-gray-700 */
-      transition: all 0.2s;
-    }
-    .btn-tab.active {
-      color: #ffffff;
-      background: linear-gradient(90deg, #3b82f6, #2563eb); /* bg-blue-600 */
-      box-shadow: 0 4px 15px -3px rgba(59, 130, 246, 0.4);
-    }
-    
-    /* Esconde telas por padrão */
-    #mainScreen, #historyScreen, #successScreen {
-      display: none;
-    }
-    
-    /* Estilo do Item de Histórico Cancelado */
-    .history-item.canceled {
-      opacity: 0.5;
-      background-image: linear-gradient(to right, rgba(75, 85, 99, 0.1), rgba(75, 85, 99, 0.3));
-    }
-    .history-item.canceled .memo-number {
-      text-decoration: line-through;
-    }
-    
-    /* Modal de Confirmação */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 50;
-      opacity: 0;
-      transition: opacity 0.2s ease-in-out;
-      pointer-events: none;
-    }
-    .modal-overlay.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    .modal-box {
-      background-color: #1f2937; /* bg-gray-800 */
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 1rem; /* rounded-2xl */
-      padding: 2rem;
-      max-width: 400px;
-      width: 90%;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-      transform: scale(0.95);
-      transition: transform 0.2s ease-in-out;
-    }
-    .modal-overlay.visible .modal-box {
-      transform: scale(1);
-    }
-
-  </style>
 </head>
 <body class="fundo-gradiente min-h-screen text-gray-200 flex items-center justify-center p-4">
 
-  <!-- Container Principal -->
+  <!-- Container Principal (O HTML não muda) -->
   <div class="w-full max-w-md">
 
     <!-- Cabeçalho (Logo e Nome) -->
     <div id="appHeader" class="text-center mb-6 opacity-0 transition-opacity duration-500">
-      <!-- Logo da Instituição -->
       <div class="flex justify-center mb-3">
-        <!-- Ajuste na moldura do logo: rounded-lg e object-contain -->
         <div class="w-16 h-16 rounded-lg object-contain bg-white/10 p-1 border-2 border-gray-600 backdrop-blur-sm shadow-md">
           <img id="appLogo" src="https://placehold.co/64x64/374151/FFFFFF?text=Logo" alt="Logo" class="w-full h-full rounded-md object-contain">
         </div>
       </div>
-      <!-- Nome da Instituição -->
       <h1 id="appName" class="text-2xl font-semibold text-white shadow-sm">Carregando...</h1>
     </div>
 
@@ -274,7 +64,6 @@
         <h2 class="text-xl font-semibold text-center mb-6">Controle de Documentos</h2>
         <label for="nameInput" class="block text-sm font-medium mb-2 text-gray-300">Identifique-se para continuar:</label>
         <input type="text" id="nameInput" class="input-futuristic w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 focus:outline-none" placeholder="Digite seu nome completo">
-        
         <button id="loginButton" class="btn-primary w-full py-3 rounded-lg text-white font-semibold mt-6 transition-all duration-300 ease-in-out">
           Entrar
         </button>
@@ -319,9 +108,8 @@
         <h2 class="text-xl font-bold text-center text-green-400 mb-4">Números Gerados!</h2>
         <p class="text-center text-gray-300 mb-6">Os seguintes números foram registrados para você:</p>
         
-        <!-- Números Gerados (Cápsulas) -->
         <div id="generatedNumbers" class="flex flex-wrap justify-center gap-2 mb-6">
-          <!-- Ex: <span class="bg-gray-700 text-white font-semibold px-4 py-2 rounded-full text-lg">001</span> -->
+          <!-- Números Gerados (Cápsulas) -->
         </div>
         
         <button id="newRequestButton" class="btn-primary w-full py-3 rounded-lg text-white font-semibold mt-6 transition-all duration-300 ease-in-out">
@@ -335,7 +123,6 @@
         
         <div id="historySpinner" class="spinner mx-auto mt-6"></div>
         
-        <!-- Container do Histórico -->
         <div id="historyContent" class="max-h-80 overflow-y-auto space-y-3 pr-2">
           <!-- Registros de histórico serão injetados aqui via JS -->
         </div>
@@ -358,7 +145,7 @@
   <div id="confirmModal" class="modal-overlay">
     <div class="modal-box">
       <h2 id="modalTitle" class="text-xl font-bold text-center text-white mb-4">Confirmar Cancelamento</h2>
-      <p id="modalMessage" class="text-center text-gray-300 mb-6">Tem certeza de que deseja cancelar este item?</p>
+      <p id="modalMessage" class="text-center text-gray-300 mb-6">Tem certeza?</p>
       <div class="flex justify-center space-x-4">
         <button id="modalCancelButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold">Não</button>
         <button id="modalConfirmButton" class="btn-danger w-full py-3 rounded-lg text-white font-semibold">Sim, Cancelar</button>
@@ -366,443 +153,22 @@
     </div>
   </div>
 
-
+  <!-- Carrega o nosso JavaScript principal -->
+  <script src="app.js"></script>
+  
+  <!-- Regista o nosso Service Worker (PWA) -->
   <script>
-    // ========================================================================
-    // VARIÁVEIS GLOBAIS
-    // ========================================================================
-    
-    // !!! IMPORTANTE !!!
-    // Esta é a URL da sua API do Google Apps Script (do "Code.gs (API)")
-    const API_URL = "https://script.google.com/macros/s/AKfycbx1saGajeJTxGsdHjf807t4auDLz26r1FbARuXGL3ftbE8XcHqiqYc3hm4wH9tUMvLhAg/exec";
-
-    // Armazena o nome do usuário logado
-    let currentUserName = '';
-    // Armazena o tipo de documento selecionado (aba)
-    let currentDocumentType = 'Memorando';
-
-    // Seletores de Elementos da UI
-    const loginScreen = document.getElementById('loginScreen');
-    const mainScreen = document.getElementById('mainScreen');
-    const historyScreen = document.getElementById('historyScreen');
-    const successScreen = document.getElementById('successScreen');
-    
-    const appHeader = document.getElementById('appHeader');
-    const appName = document.getElementById('appName');
-    const appLogo = document.getElementById('appLogo');
-    
-    const loginButton = document.getElementById('loginButton');
-    const loginSpinner = document.getElementById('loginSpinner');
-    const loginError = document.getElementById('loginError');
-    const nameInput = document.getElementById('nameInput');
-    
-    const requestButton = document.getElementById('requestButton');
-    const historyButton = document.getElementById('historyButton');
-    const requestSpinner = document.getElementById('requestSpinner');
-    const requestError = document.getElementById('requestError');
-    const userNameSpan = document.getElementById('userName');
-    
-    const quantityInput = document.getElementById('quantityInput');
-    const purposeInput = document.getElementById('purposeInput');
-    
-    // Abas
-    const memoTab = document.getElementById('memoTab');
-    const oficioTab = document.getElementById('oficioTab');
-    
-    const generatedNumbers = document.getElementById('generatedNumbers');
-    const newRequestButton = document.getElementById('newRequestButton');
-    
-    const historyContent = document.getElementById('historyContent');
-    const historySpinner = document.getElementById('historySpinner');
-    const backButton = document.getElementById('backButton');
-    
-    // Modal
-    const confirmModal = document.getElementById('confirmModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalMessage = document.getElementById('modalMessage');
-    const modalCancelButton = document.getElementById('modalCancelButton');
-    const modalConfirmButton = document.getElementById('modalConfirmButton');
-    
-    // Armazena a ação pendente (ex: função a ser chamada)
-    let pendingAction = null;
-
-    // ========================================================================
-    // FUNÇÃO HELPER (AJUDA): sleep(ms)
-    // ========================================================================
-    
-    /**
-     * Pausa a execução por um determinado número de milissegundos.
-     * @param {number} ms - O tempo para "dormir" em milissegundos.
-     */
-    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-    // ========================================================================
-    // FUNÇÃO HELPER (AJUDA): callApi(action, payload)
-    // ========================================================================
-    
-    /**
-     * ATUALIZADO (v6): Função central para fazer chamadas à nossa API.
-     * Agora usa SEMPRE o método 'POST' e tem LÓGICA DE RETENTATIVA.
-     * @param {string} action - A ação a ser executada (ex: 'getAppDetails', 'checkUser').
-     * @param {object} payload - O objeto de dados a ser enviado (ex: { name: 'Thiego' }).
-     * @returns {Promise<object>} O objeto 'data' da resposta da API.
-     */
-    async function callApi(action, payload = {}) {
-      const MAX_RETRIES = 3; // Tentar no máximo 3 vezes
-      const RETRY_DELAY = 2000; // Esperar 2 segundos entre tentativas
-      const url = API_URL;
-
-      // Loop de retentativas
-      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-        try {
-          const options = {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'text/plain', 
-            },
-            body: JSON.stringify({
-              action: action,
-              payload: payload 
-            }),
-          };
-
-          const response = await fetch(url, options);
-          
-          const textResponse = await response.text();
-          let data;
-
-          try {
-            data = JSON.parse(textResponse);
-          } catch (e) {
-            console.error(`Tentativa ${attempt}: Erro ao parsear JSON:`, textResponse);
-            // Se o JSON falhou, pode ser um erro HTML do Google
-            if (textResponse.includes("não pôde ser encontrado")) {
-              throw new Error("Erro de API: Script não encontrado. Verifique a URL.");
-            }
-             if (textResponse.includes("TypeError:") || textResponse.includes("ReferenceError:")) {
-               throw new Error("Erro interno no servidor (Apps Script). Verifique os logs.");
-            }
-            throw new Error("Resposta inesperada do servidor.");
-          }
-          
-          if (data.status === 'success') {
-            return data.data; // SUCESSO! Retorna os dados.
-          } else {
-            // Se o servidor respondeu com um erro conhecido (ex: "Usuário não encontrado")
-            throw new Error(data.message);
-          }
-
-        } catch (error) {
-          console.error(`Erro na chamada API (Tentativa ${attempt}/${MAX_RETRIES}, Ação: ${action}):`, error);
-
-          // Verifica se foi um erro de rede (ex: "Failed to fetch")
-          // Este é o erro que queremos tentar de novo
-          if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-            if (attempt === MAX_RETRIES) {
-              // Se foi a última tentativa, desiste e lança o erro
-              throw new Error(`Falha ao conectar à API após ${MAX_RETRIES} tentativas. O servidor pode estar offline ou em "cold start".`);
-            }
-            // Se não foi a última tentativa, espera e tenta de novo
-            console.warn(`API "cold start" detectado. Tentando novamente em ${RETRY_DELAY / 1000}s...`);
-            await sleep(RETRY_DELAY);
-          } else {
-            // Se foi outro tipo de erro (ex: Erro de JSON, Erro de API),
-            // não adianta tentar de novo. Propaga o erro.
-            throw error;
-          }
-        }
-      }
-    }
-
-    // ========================================================================
-    // FUNÇÕES DA APLICAÇÃO
-    // ========================================================================
-
-    /**
-     * Carrega os detalhes do app (logo e nome) assim que a página abre.
-     */
-    async function loadAppDetails() {
-      try {
-        const data = await callApi('getAppDetails');
-        appName.textContent = data.appName;
-        appLogo.src = data.logoUrl;
-        appHeader.classList.remove('opacity-0');
-      } catch (error) {
-        appName.textContent = "Erro ao Carregar";
-        appHeader.classList.remove('opacity-0');
-        console.error(error);
-        // Agora mostra o erro de forma mais inteligente (ex: "Falha ao conectar...")
-        loginError.textContent = `${error.message}`;
-      }
-    }
-
-    /**
-     * Troca qual tela está visível.
-     */
-    function showScreen(screenId) {
-      // ... (Esta função não muda)
-      loginScreen.style.display = (screenId === 'login') ? 'block' : 'none';
-      mainScreen.style.display = (screenId === 'main') ? 'block' : 'none';
-      historyScreen.style.display = (screenId === 'history') ? 'block' : 'none';
-      successScreen.style.display = (screenId === 'success') ? 'block' : 'none';
-      loginError.textContent = '';
-      requestError.textContent = '';
-    }
-
-    /**
-     * Lida com a tentativa de login.
-     */
-    async function handleLogin() {
-      // ... (A lógica interna desta função não muda)
-      const name = nameInput.value;
-      if (!name) {
-        loginError.textContent = 'Por favor, digite seu nome.';
-        return;
-      }
-      loginButton.style.display = 'none';
-      loginSpinner.style.display = 'block';
-      loginError.textContent = '';
-      try {
-        const userExists = await callApi('checkUser', { name: name });
-        if (userExists) {
-          currentUserName = name;
-          userNameSpan.textContent = name.split(' ')[0];
-          showScreen('main');
-        } else {
-          loginError.textContent = 'Usuário não cadastrado. Fale com o administrador.';
-        }
-      } catch (error) {
-        loginError.textContent = `Erro: ${error.message}`;
-      } finally {
-        loginButton.style.display = 'block';
-        loginSpinner.style.display = 'none';
-      }
-    }
-
-    /**
-     * Lida com a solicitação de números.
-     */
-    async function handleRequest() {
-      // ... (A lógica interna desta função não muda)
-      const quantity = quantityInput.value;
-      const purpose = purposeInput.value;
-      if (!purpose) {
-        requestError.textContent = 'Por favor, preencha a finalidade.';
-        return;
-      }
-      requestButton.style.display = 'none';
-      historyButton.style.display = 'none';
-      requestSpinner.style.display = 'block';
-      requestError.textContent = '';
-      try {
-        const payload = {
-          userName: currentUserName,
-          quantity: parseInt(quantity, 10),
-          purpose: purpose,
-          tipo: currentDocumentType 
-        };
-        const generated = await callApi('requestNumbers', payload);
-        onRequestSuccess(generated);
-      } catch (error) {
-        requestError.textContent = `Erro: ${error.message}`;
-      } finally {
-        requestButton.style.display = 'block';
-        historyButton.style.display = 'block';
-        requestSpinner.style.display = 'none';
-      }
-    }
-    
-    /**
-     * Exibe a tela de sucesso com os números gerados.
-     */
-    function onRequestSuccess(numbers) {
-      // ... (Esta função não muda)
-      generatedNumbers.innerHTML = ''; 
-      numbers.forEach(num => {
-        const pill = document.createElement('span');
-        pill.className = 'bg-gray-700/50 border border-gray-600 text-white font-semibold px-4 py-2 rounded-full text-lg shadow-md';
-        pill.textContent = num;
-        generatedNumbers.appendChild(pill);
-      });
-      showScreen('success');
-    }
-
-    /**
-     * Busca e exibe o histórico do usuário.
-     */
-    async function showHistory() {
-      // ... (A lógica interna desta função não muda)
-      showScreen('history');
-      historyContent.innerHTML = '';
-      historySpinner.style.display = 'block';
-      try {
-        const history = await callApi('getUserHistory', { name: currentUserName });
-        historySpinner.style.display = 'none';
-        if (history.length === 0) {
-          historyContent.innerHTML = '<p class="text-center text-gray-400">Você ainda não possui registros.</p>';
-        } else {
-          history.forEach(item => {
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'history-item bg-gray-900/50 p-3 rounded-lg border border-gray-700/50';
-            itemDiv.id = `item-${item.rowNumber}`; 
-            const isCanceled = item.status === 'Cancelado';
-            if (isCanceled) {
-              itemDiv.classList.add('canceled');
-            }
-            let date = 'Data inválida';
-            try {
-              date = new Date(item.timestamp).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }); 
-            } catch(e) {}
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'flex justify-between items-start';
-            const infoDiv = document.createElement('div');
-            infoDiv.innerHTML = `
-              <p class="text-sm text-gray-400">${date}</p>
-              <p class="font-semibold text-lg text-blue-300 memo-number">Nº ${item.memoNumber} (${item.tipo})</p>
-              <p class="text-gray-300 whitespace-pre-wrap">Finalidade: ${item.purpose}</p>
-            `;
-            contentDiv.appendChild(infoDiv);
-            if (isCanceled) {
-              const statusP = document.createElement('p');
-              statusP.className = 'text-xs text-red-400 font-semibold mt-2';
-              statusP.textContent = 'CANCELADO';
-              infoDiv.appendChild(statusP);
-            } else {
-              const cancelButton = document.createElement('button');
-              cancelButton.className = 'btn-cancel flex-shrink-0';
-              cancelButton.title = 'Cancelar este item';
-              cancelButton.innerHTML = '&times;'; 
-              cancelButton.addEventListener('click', () => {
-                handleCancelClick(item.rowNumber, item.memoNumber);
-              });
-              contentDiv.appendChild(cancelButton);
-            }
-            itemDiv.appendChild(contentDiv);
-            historyContent.appendChild(itemDiv);
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(registration => {
+            console.log('Service Worker registado com sucesso:', registration);
+          })
+          .catch(error => {
+            console.log('Falha ao registar o Service Worker:', error);
           });
-        }
-      } catch (error) {
-        historySpinner.style.display = 'none';
-        historyContent.innerHTML = `<p class="text-center text-red-400">Erro ao buscar histórico: ${error.message}</p>`;
-      }
+      });
     }
-
-    /**
-     * Lida com o clique no botão [X] de cancelar.
-     */
-    function handleCancelClick(rowNumber, memoNumber) {
-      // ... (Esta função não muda)
-      modalTitle.textContent = 'Confirmar Cancelamento';
-      modalMessage.textContent = `Tem certeza de que deseja cancelar o item Nº ${memoNumber}? Esta ação não pode ser desfeita.`;
-      pendingAction = () => executeCancel(rowNumber);
-      confirmModal.classList.add('visible');
-    }
-
-    /**
-     * Executa o cancelamento (chamado pelo modal).
-     */
-    async function executeCancel(rowNumber) {
-      // ... (A lógica interna desta função não muda)
-      confirmModal.classList.remove('visible');
-      try {
-        const payload = {
-          rowNumber: rowNumber,
-          userName: currentUserName
-        };
-        const result = await callApi('cancelDocument', payload);
-        const itemDiv = document.getElementById(`item-${rowNumber}`);
-        if (itemDiv) {
-          itemDiv.classList.add('canceled');
-          const btn = itemDiv.querySelector('.btn-cancel');
-          if (btn) btn.remove();
-          const infoDiv = itemDiv.querySelector('.flex-shrink-0')?.parentNode || itemDiv.querySelector('div');
-          const statusP = document.createElement('p');
-          statusP.className = 'text-xs text-red-400 font-semibold mt-2';
-          statusP.textContent = 'CANCELADO';
-          infoDiv.appendChild(statusP);
-        }
-      } catch (error) {
-        console.error("Erro ao cancelar:", error);
-        modalTitle.textContent = 'Erro ao Cancelar';
-        modalMessage.textContent = error.message;
-        pendingAction = null; 
-        modalConfirmButton.style.display = 'none';
-        modalCancelButton.textContent = 'Fechar';
-        confirmModal.classList.add('visible');
-      }
-    }
-
-    /**
-     * Controla os botões +/- do seletor de quantidade.
-     */
-    function adjustQuantity(amount) {
-      // ... (Esta função não muda)
-      let currentValue = parseInt(quantityInput.value, 10);
-      currentValue += amount;
-      if (currentValue < 1) {
-        currentValue = 1; 
-      }
-      quantityInput.value = currentValue;
-    }
-    
-    /**
-     * Controla a troca de abas (Memorando/Ofício)
-     */
-    function handleTabClick(selectedType) {
-      // ... (Esta função não muda)
-      currentDocumentType = selectedType;
-      if (selectedType === 'Memorando') {
-        memoTab.classList.add('active');
-        oficioTab.classList.remove('active');
-      } else {
-        memoTab.classList.remove('active');
-        oficioTab.classList.add('active');
-      }
-    }
-
-    // ========================================================================
-    // EVENT LISTENERS (Gatilhos)
-    // ========================================================================
-    
-    // Inicia o app assim que a página carrega
-    document.addEventListener('DOMContentLoaded', () => {
-      loadAppDetails();
-      showScreen('login');
-    });
-
-    // ... (O resto dos listeners não muda)
-    loginButton.addEventListener('click', handleLogin);
-    nameInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') handleLogin();
-    });
-    requestButton.addEventListener('click', handleRequest);
-    historyButton.addEventListener('click', showHistory);
-    backButton.addEventListener('click', () => {
-      showScreen('main');
-    });
-    newRequestButton.addEventListener('click', () => {
-      quantityInput.value = 1;
-      purposeInput.value = '';
-      showScreen('main');
-    });
-    memoTab.addEventListener('click', () => handleTabClick('Memorando'));
-    oficioTab.addEventListener('click', () => handleTabClick('Ofício'));
-    
-    modalCancelButton.addEventListener('click', () => {
-      confirmModal.classList.remove('visible');
-      modalConfirmButton.style.display = 'block';
-      modalCancelButton.textContent = 'Não';
-    });
-    
-    modalConfirmButton.addEventListener('click', () => {
-      if (pendingAction) {
-        pendingAction();
-      }
-      pendingAction = null; 
-      confirmModal.classList.remove('visible');
-    });
-
   </script>
-
 </body>
 </html>
