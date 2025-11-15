@@ -3,8 +3,8 @@
 // ========================================================================
 
 // !!! IMPORTANTE !!!
-// ATUALIZADO COM A URL CORRETA QUE VOCÊ FORNECEU
-const API_URL = "https://script.google.com/macros/s/AKfycbx1saGajeJTxGsdHjf807t4auDLz26r1FbARuXGL3ftbE8XcHqiqYc3hm4wH9tUMvLhAg/exec"; 
+// SUBSTITUA A URL ABAIXO PELA "NOVA URL" QUE VOCÊ ACABOU DE COPIAR DO PASSO 1
+const API_URL = "https://script.google.com/macros/s/AKfycby1s6YtiJ8nfY9M7-liZbuPMqo2mOfSbnOW4FFRc39Mw9YzHON0XLIljhjZkEM9D3-wXQ/exec"; 
 
 // Armazena o nome do usuário logado
 let currentUserName = '';
