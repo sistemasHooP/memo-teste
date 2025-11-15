@@ -3,7 +3,62 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Controle de Memorandos</title>
+  
+  <!-- Título da Aplicação -->
+  <title>Controle de Documentos</title>
+  
+  <!-- === INÍCIO DAS NOVAS TAGS PWA (WEB APP) === -->
+  
+  <!-- 1. Tema da Barra de Endereço (para Android) -->
+  <!-- Muda a cor da barra de status do celular -->
+  <meta name="theme-color" content="#1f2937">
+
+  <!-- 2. Tags para iOS (iPhone/iPad) -->
+  <!-- Permite que o app rode em tela cheia -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <!-- Define o título que aparece sob o ícone -->
+  <meta name="apple-mobile-web-app-title" content="ControleDocs">
+  <!-- Define o estilo da barra de status (preta) -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- 3. Ícone Principal (para iOS e Android) -->
+  <!-- 
+    NOTA: O ideal é ter um ícone real (ex: logo.png) alojado no GitHub junto com o seu index.html.
+    Como não temos um, vamos usar um ícone genérico "placehold.co" por enquanto.
+    Se você tiver o seu logo (ex: 192x192 pixels), substitua o 'href' abaixo.
+  -->
+  <link rel="apple-touch-icon" href="https://placehold.co/192x192/3b82f6/FFFFFF?text=DOCS">
+  <link rel="icon" href="https://placehold.co/192x192/3b82f6/FFFFFF?text=DOCS">
+
+  <!-- 4. Manifest Embutido (para Android) -->
+  <!-- 
+    Isto simula um ficheiro manifest.json usando um "Data URL".
+    Ele diz ao Android como o app deve parecer e se comportar.
+  -->
+  <link rel="manifest" href="data:application/json,{
+    &quot;name&quot;: &quot;Controle de Documentos&quot;,
+    &quot;short_name&quot;: &quot;ControleDocs&quot;,
+    &quot;start_url&quot;: &quot;.&quot;,
+    &quot;display&quot;: &quot;standalone&quot;,
+    &quot;background_color&quot;: &quot;#111827&quot;,
+    &quot;theme_color&quot;: &quot;#1f2937&quot;,
+    &quot;description&quot;: &quot;Aplicativo para geração de Memorandos e Ofícios.&quot;,
+    &quot;icons&quot;: [
+      {
+        &quot;src&quot;: &quot;https://placehold.co/192x192/3b82f6/FFFFFF?text=DOCS&quot;,
+        &quot;sizes&quot;: &quot;192x192&quot;,
+        &quot;type&quot;: &quot;image/png&quot;
+      },
+      {
+        &quot;src&quot;: &quot;https://placehold.co/512x512/3b82f6/FFFFFF?text=DOCS&quot;,
+        &quot;sizes&quot;: &quot;512x512&quot;,
+        &quot;type&quot;: &quot;image/png&quot;
+      }
+    ]
+  }">
+  
+  <!-- === FIM DAS NOVAS TAGS PWA === -->
+
   <!-- Carrega o CSS do Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Fonte personalizada (Poppins) do Google Fonts -->
