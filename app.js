@@ -3,7 +3,8 @@
 // ========================================================================
 
 // !!! IMPORTANTE !!!
-const API_URL = "https://script.google.com/macros/s/AKfycbx1saGajeJTxGsdHjf807t4auDLz26r1FbARuXGL3ftbE8XcHqiqYc3hm4wH9tUMvLhAg/exec"; // ATUALIZE COM A SUA NOVA URL
+// ATUALIZADO COM A URL CORRETA QUE VOCÊ FORNECEU
+const API_URL = "https://script.google.com/macros/s/AKfycbx1saGajeJTxGsdHjf807t4auDLz26r1FbARuXGL3ftbE8XcHqiqYc3hm4wH9tUMvLhAg/exec"; 
 
 // Armazena o nome do usuário logado
 let currentUserName = '';
@@ -245,7 +246,6 @@ async function handleLogin() {
   * Lida com a solicitação de números.
   */
 async function handleRequest() {
-  // ... (Esta função não muda)
   const quantity = quantityInput.value;
   const purpose = purposeInput.value;
   if (!purpose) {
@@ -280,7 +280,6 @@ async function handleRequest() {
   * Exibe a tela de sucesso com os números gerados.
   */
 function onRequestSuccess(numbers) {
-  // ... (Esta função não muda)
   generatedNumbers.innerHTML = ''; 
   numbers.forEach(num => {
     const pill = document.createElement('span');
@@ -295,7 +294,6 @@ function onRequestSuccess(numbers) {
   * Busca e exibe o histórico do usuário.
   */
 async function showHistory() {
-  // ... (Esta função não muda)
   showScreen('history');
   historyContent.innerHTML = '';
   historySpinner.style.display = 'block';
@@ -404,7 +402,6 @@ async function executeCancel(rowNumber) {
   * Controla os botões +/- do seletor de quantidade.
   */
 function adjustQuantity(amount) {
-  // ... (Esta função não muda)
   let currentValue = parseInt(quantityInput.value, 10);
   currentValue += amount;
   if (currentValue < 1) {
@@ -417,7 +414,6 @@ function adjustQuantity(amount) {
   * Controla o clique nas abas (Memo / Ofício).
   */
 function handleTabClick(selectedType) {
-  // ... (Esta função não muda)
   currentDocumentType = selectedType;
   if (selectedType === 'Memorando') {
     memoTab.classList.add('active');
