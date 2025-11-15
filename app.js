@@ -3,7 +3,7 @@
 // ========================================================================
 
 // !!! IMPORTANTE !!!
-// SUBSTITUA A URL ABAIXO PELA "NOVA URL" QUE VOCÊ ACABOU DE COPIAR DO PASSO 1
+// ATUALIZADO COM A URL CORRETA (A QUE VOCÊ ME ENVIOU)
 const API_URL = "https://script.google.com/macros/s/AKfycby1s6YtiJ8nfY9M7-liZbuPMqo2mOfSbnOW4FFRc39Mw9YzHON0XLIljhjZkEM9D3-wXQ/exec"; 
 
 // Armazena o nome do usuário logado
