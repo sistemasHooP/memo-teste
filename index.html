@@ -8,26 +8,13 @@
   <title>Controle de Documentos</title>
   
   <!-- === INÍCIO DAS TAGS PWA (WEB APP) === -->
-  
-  <!-- 1. Tema da Barra de Endereço (para Android) -->
   <meta name="theme-color" content="#1f2937">
-
-  <!-- 2. Tags para iOS (iPhone/iPad) -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="ControleDocs">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-  <!-- 3. Ícone Principal (para iOS e Android) -->
-  <!-- 
-    IMPORTANTE: Agora você deve criar um ícone (ex: "icone-192.png") 
-    e colocá-lo na mesma pasta do seu index.html no GitHub.
-  -->
   <link rel="apple-touch-icon" href="icone-192.png">
   <link rel="icon" href="icone-192.png">
-
-  <!-- 4. Manifesto (agora um ficheiro real) -->
   <link rel="manifest" href="manifest.json">
-  
   <!-- === FIM DAS TAGS PWA === -->
 
   <!-- Carrega o CSS do Tailwind -->
@@ -76,13 +63,11 @@
         <h2 class="text-xl font-semibold text-center mb-2">Olá, <span id="userName" class="text-blue-300"></span>!</h2>
         <p class="text-center text-gray-400 mb-6">Selecione o tipo de documento.</p>
         
-        <!-- Abas (Memorando / Ofício) -->
         <div class="flex items-center space-x-2 mb-6">
           <button id="memoTab" class="btn-tab active">Memorando</button>
           <button id="oficioTab" class="btn-tab">Ofício</button>
         </div>
         
-        <!-- Seletor de Quantidade -->
         <label class="block text-sm font-medium mb-2 text-gray-300">Quantos números você precisa?</label>
         <div class="flex items-center justify-center space-x-3 mb-6">
           <button onclick="adjustQuantity(-1)" class="btn-secondary font-bold w-12 h-12 rounded-full text-2xl flex items-center justify-center">-</button>
@@ -99,6 +84,12 @@
         <button id="historyButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold mt-3 transition-all duration-300 ease-in-out">
           Meu Histórico
         </button>
+        
+        <!-- NOVO BOTÃO DE ADMIN (escondido por padrão) -->
+        <button id="adminButton" class="btn-danger w-full py-3 rounded-lg text-white font-semibold mt-3 transition-all duration-300 ease-in-out" style="display: none;">
+          Painel de Administração
+        </button>
+        
         <div id="requestSpinner" class="spinner mx-auto mt-6" style="display: none;"></div>
         <p id="requestError" class="text-red-400 text-center mt-4"></p>
       </div>
@@ -107,11 +98,7 @@
       <div id="successScreen">
         <h2 class="text-xl font-bold text-center text-green-400 mb-4">Números Gerados!</h2>
         <p class="text-center text-gray-300 mb-6">Os seguintes números foram registrados para você:</p>
-        
-        <div id="generatedNumbers" class="flex flex-wrap justify-center gap-2 mb-6">
-          <!-- Números Gerados (Cápsulas) -->
-        </div>
-        
+        <div id="generatedNumbers" class="flex flex-wrap justify-center gap-2 mb-6"></div>
         <button id="newRequestButton" class="btn-primary w-full py-3 rounded-lg text-white font-semibold mt-6 transition-all duration-300 ease-in-out">
           Solicitar Mais
         </button>
@@ -120,14 +107,77 @@
       <!-- TELA DE HISTÓRICO -->
       <div id="historyScreen">
         <h2 class="text-xl font-semibold text-center mb-6">Meu Histórico</h2>
-        
         <div id="historySpinner" class="spinner mx-auto mt-6"></div>
-        
-        <div id="historyContent" class="max-h-80 overflow-y-auto space-y-3 pr-2">
-          <!-- Registros de histórico serão injetados aqui via JS -->
-        </div>
-        
+        <div id="historyContent" class="max-h-80 overflow-y-auto space-y-3 pr-2"></div>
         <button id="backButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold mt-6 transition-all duration-300 ease-in-out">
+          Voltar
+        </button>
+      </div>
+      
+      <!-- NOVA TELA DE ADMIN -->
+      <div id="adminScreen">
+        <h2 class="text-xl font-semibold text-center mb-6">Painel de Admin</h2>
+        
+        <div id="adminSpinner" class="spinner mx-auto mt-6"></div>
+        <p id="adminError" class="text-red-400 text-center mt-4"></p>
+
+        <!-- Conteúdo do Admin (carregado dinamicamente) -->
+        <div id="adminContent" class="max-h-96 overflow-y-auto space-y-6 pr-2">
+          
+          <!-- Seção 1: Gerenciar Usuários -->
+          <section>
+            <h3 class="text-lg font-semibold text-blue-300 mb-3">Gerenciar Usuários</h3>
+            
+            <!-- Adicionar Novo Usuário -->
+            <div class="flex space-x-2 mb-4">
+              <input type="text" id="newUserNameInput" class="input-futuristic w-full px-3 py-2 rounded-lg" placeholder="Nome do Novo Usuário">
+              <select id="newUserLevelInput" class="input-futuristic px-3 py-2 rounded-lg">
+                <option value="Padrão">Padrão</option>
+                <option value="Admin">Admin</option>
+              </select>
+            </div>
+            <button id="addUserButton" class="btn-success w-full py-2 rounded-lg text-sm font-semibold mb-4">Adicionar Usuário</button>
+            <p id="adminUserError" class="text-red-400 text-center text-sm mb-2"></p>
+            
+            <!-- Lista de Usuários Atuais -->
+            <div id="userList" class="space-y-2">
+              <!-- Usuários serão injetados aqui (ex: <div class="user-list-item">...</div>) -->
+            </div>
+          </section>
+          
+          <!-- Seção 2: Configurações de Sequência -->
+          <section>
+            <h3 class="text-lg font-semibold text-blue-300 mb-3">Configurações de Sequência</h3>
+            <p id="adminSettingsError" class="text-red-400 text-center text-sm mb-2"></p>
+            
+            <!-- Formulário de Memorando -->
+            <form id="memoSettingsForm" class="space-y-2 mb-4">
+              <h4 class="font-medium text-white">Memorando</h4>
+              <div class="grid grid-cols-2 gap-2">
+                <input type="text" id="memoStart" class="input-disabled" disabled>
+                <input type="number" id="memoEnd" class="input-futuristic" placeholder="Fim">
+                <input type="number" id="memoNext" class="input-futuristic" placeholder="Próximo">
+                <input type="text" id="memoYear" class="input-disabled" disabled>
+              </div>
+            </form>
+            
+            <!-- Formulário de Ofício -->
+            <form id="oficioSettingsForm" class="space-y-2 mb-4">
+              <h4 class="font-medium text-white">Ofício</h4>
+              <div class="grid grid-cols-2 gap-2">
+                <input type="text" id="oficioStart" class="input-disabled" disabled>
+                <input type="number" id="oficioEnd" class="input-futuristic" placeholder="Fim">
+                <input type="number" id="oficioNext" class="input-futuristic" placeholder="Próximo">
+                <input type="text" id="oficioYear" class="input-disabled" disabled>
+              </div>
+            </form>
+            
+            <button id="saveSettingsButton" class="btn-primary w-full py-3 rounded-lg font-semibold">Salvar Configurações</button>
+          </section>
+
+        </div> <!-- Fim do adminContent -->
+
+        <button id="adminBackButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold mt-6 transition-all duration-300 ease-in-out">
           Voltar
         </button>
       </div>
@@ -141,14 +191,14 @@
     
   </div> <!-- Fim do Container Principal -->
 
-  <!-- Modal de Confirmação de Cancelamento -->
+  <!-- Modal de Confirmação de Cancelamento / Deleção -->
   <div id="confirmModal" class="modal-overlay">
     <div class="modal-box">
-      <h2 id="modalTitle" class="text-xl font-bold text-center text-white mb-4">Confirmar Cancelamento</h2>
+      <h2 id="modalTitle" class="text-xl font-bold text-center text-white mb-4">Confirmar Ação</h2>
       <p id="modalMessage" class="text-center text-gray-300 mb-6">Tem certeza?</p>
       <div class="flex justify-center space-x-4">
         <button id="modalCancelButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold">Não</button>
-        <button id="modalConfirmButton" class="btn-danger w-full py-3 rounded-lg text-white font-semibold">Sim, Cancelar</button>
+        <button id="modalConfirmButton" class="btn-danger w-full py-3 rounded-lg text-white font-semibold">Sim</button>
       </div>
     </div>
   </div>
