@@ -3,7 +3,7 @@
 // ========================================================================
 
 // !!! IMPORTANTE !!!
-const API_URL = "https://script.google.com/macros/s/AKfycbyi8JmYfGaxC9fA-YkX-hS-XvB8uY1kF-W-z-q-1YfJ-Q-w-e_j_x/exec"; // ATUALIZE COM A SUA NOVA URL
+const API_URL = "https://script.google.com/macros/s/AKfycbx1saGajeJTxGsdHjf807t4auDLz26r1FbARuXGL3ftbE8XcHqiqYc3hm4wH9tUMvLhAg/exec"; // ATUALIZE COM A SUA NOVA URL
 
 // Armazena o nome do usuário logado
 let currentUserName = '';
