@@ -3,222 +3,466 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- Título da Aplicação -->
   <title>Controle de Documentos</title>
-  
-  <!-- === INÍCIO DAS TAGS PWA (WEB APP) === -->
-  <meta name="theme-color" content="#1f2937">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="ControleDocs">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="icone-192.png">
-  <link rel="icon" href="icone-192.png">
-  <link rel="manifest" href="manifest.json">
-  <!-- === FIM DAS TAGS PWA === -->
-
-  <!-- Carrega o CSS do Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Carrega o nosso CSS personalizado -->
-  <link rel="stylesheet" href="style.css">
-  
-  <!-- Fonte personalizada (Poppins) do Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <style>
+    body { font-family: 'Poppins', sans-serif; }
+    .fundo-gradiente {
+      background: linear-gradient(-45deg, #1f2937, #111827, #312e81, #1e3a8a);
+      background-size: 400% 400%; animation: gradientBG 15s ease infinite;
+    }
+    @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    .app-card {
+      background-color: rgba(31, 41, 55, 0.5); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+    .input-futuristic {
+      background-color: rgba(17, 24, 39, 0.6); border: 1px solid rgba(75, 85, 99, 0.8);
+      color: white;
+    }
+    .input-futuristic:focus {
+      background-color: rgba(17, 24, 39, 0.9); border-color: rgba(59, 130, 246, 0.8);
+      outline: none; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+    }
+    /* Estilos de botões igual ao anterior... */
+    .btn-primary { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+    .btn-success { background: linear-gradient(90deg, #10b981, #059669); }
+    .btn-danger { background: linear-gradient(90deg, #ef4444, #dc2626); }
+    .btn-secondary { background-color: #4b5563; }
+    .btn-tab { background-color: #374151; color: #d1d5db; flex: 1; padding: 0.75rem; border-radius: 0.5rem; }
+    .btn-tab.active { background: linear-gradient(90deg, #3b82f6, #2563eb); color: white; }
+    
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.2); border-left-color: #ffffff;
+      border-radius: 50%; width: 32px; height: 32px; animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Modal Overlay */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+      display: flex; justify-content: center; align-items: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 50;
+    }
+    .modal-overlay.visible { opacity: 1; pointer-events: auto; }
+
+    /* Admin Styles */
+    .admin-section { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; margin-top: 1rem; }
+  </style>
 </head>
 <body class="fundo-gradiente min-h-screen text-gray-200 flex items-center justify-center p-4">
 
-  <!-- Container Principal (O HTML não muda) -->
   <div class="w-full max-w-md">
 
-    <!-- Cabeçalho (Logo e Nome) -->
-    <div id="appHeader" class="text-center mb-6 opacity-0 transition-opacity duration-500">
+    <div id="appHeader" class="text-center mb-6 opacity-0 transition-opacity duration-500 relative">
       <div class="flex justify-center mb-3">
-        <div class="w-16 h-16 rounded-lg object-contain bg-white/10 p-1 border-2 border-gray-600 backdrop-blur-sm shadow-md">
-          <img id="appLogo" src="https://placehold.co/64x64/374151/FFFFFF?text=Logo" alt="Logo" class="w-full h-full rounded-md object-contain">
+        <div class="w-16 h-16 rounded-lg bg-white/10 p-1 border-2 border-gray-600 backdrop-blur-sm shadow-md">
+          <img id="appLogo" src="" alt="Logo" class="w-full h-full rounded-md object-contain">
         </div>
       </div>
       <h1 id="appName" class="text-2xl font-semibold text-white shadow-sm">Carregando...</h1>
+      
+      <button id="adminButton" class="hidden absolute top-0 right-0 p-2 text-gray-400 hover:text-white transition-colors" title="Painel Admin">
+        <i class="ph ph-gear text-2xl"></i>
+      </button>
     </div>
 
-    <!-- Card da Aplicação -->
-    <div id="appCard" class="app-card rounded-2xl shadow-2xl p-6 sm:p-8">
+    <div class="app-card rounded-2xl shadow-2xl p-6 sm:p-8 relative">
 
-      <!-- TELA DE LOGIN -->
       <div id="loginScreen">
-        <h2 class="text-xl font-semibold text-center mb-6">Controle de Documentos</h2>
-        <label for="nameInput" class="block text-sm font-medium mb-2 text-gray-300">Identifique-se para continuar:</label>
-        <input type="text" id="nameInput" class="input-futuristic w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 focus:outline-none" placeholder="Digite seu nome completo">
-        <button id="loginButton" class="btn-primary w-full py-3 rounded-lg text-white font-semibold mt-6 transition-all duration-300 ease-in-out">
-          Entrar
-        </button>
-        <div id="loginSpinner" class="spinner mx-auto mt-6" style="display: none;"></div>
+        <h2 class="text-xl font-semibold text-center mb-6">Login</h2>
+        <input type="text" id="nameInput" class="input-futuristic w-full px-4 py-3 rounded-lg mb-4" placeholder="Seu nome completo">
+        <button id="loginButton" class="btn-primary w-full py-3 rounded-lg text-white font-semibold">Entrar</button>
+        <div id="loginSpinner" class="spinner mx-auto mt-6 hidden"></div>
         <p id="loginError" class="text-red-400 text-center mt-4"></p>
       </div>
 
-      <!-- TELA PRINCIPAL (Solicitação) -->
-      <div id="mainScreen">
-        <h2 class="text-xl font-semibold text-center mb-2">Olá, <span id="userName" class="text-blue-300"></span>!</h2>
-        <p class="text-center text-gray-400 mb-6">Selecione o tipo de documento.</p>
+      <div id="mainScreen" class="hidden">
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="text-xl font-semibold">Olá, <span id="userName" class="text-blue-300"></span>!</h2>
+          <span id="adminBadge" class="hidden bg-blue-600 text-xs px-2 py-1 rounded font-bold uppercase">Admin</span>
+        </div>
         
-        <div class="flex items-center space-x-2 mb-6">
+        <p class="text-center text-gray-400 mb-6">Selecione o tipo:</p>
+        <div class="flex space-x-2 mb-6">
           <button id="memoTab" class="btn-tab active">Memorando</button>
           <button id="oficioTab" class="btn-tab">Ofício</button>
+          <button id="portariaTab" class="btn-tab">Portaria</button>
         </div>
-        
-        <label class="block text-sm font-medium mb-2 text-gray-300">Quantos números você precisa?</label>
+
         <div class="flex items-center justify-center space-x-3 mb-6">
-          <button onclick="adjustQuantity(-1)" class="btn-secondary font-bold w-12 h-12 rounded-full text-2xl flex items-center justify-center">-</button>
-          <input type="number" id="quantityInput" value="1" min="1" readonly class="input-futuristic w-20 h-12 rounded-lg text-white text-center text-xl font-semibold focus:outline-none">
-          <button onclick="adjustQuantity(1)" class="btn-secondary font-bold w-12 h-12 rounded-full text-2xl flex items-center justify-center">+</button>
+          <button onclick="adjustQuantity(-1)" class="btn-secondary w-10 h-10 rounded-full font-bold">-</button>
+          <input type="number" id="quantityInput" value="1" readonly class="input-futuristic w-16 h-10 text-center rounded-lg">
+          <button onclick="adjustQuantity(1)" class="btn-secondary w-10 h-10 rounded-full font-bold">+</button>
         </div>
+
+        <textarea id="purposeInput" rows="3" class="input-futuristic w-full px-4 py-3 rounded-lg mb-4" placeholder="Finalidade..."></textarea>
         
-        <label for="purposeInput" class="block text-sm font-medium mb-2 text-gray-300">Finalidade (Descrição):</label>
-        <textarea id="purposeInput" rows="3" class="input-futuristic w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 focus:outline-none resize-none" placeholder="Ex: Referente ao ofício X..."></textarea>
+        <button id="requestButton" class="btn-success w-full py-3 rounded-lg text-white font-semibold mb-3">Solicitar</button>
+        <button id="historyButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold">Histórico</button>
         
-        <button id="requestButton" class="btn-success w-full py-3 rounded-lg text-white font-semibold mt-6 transition-all duration-300 ease-in-out">
-          Solicitar Números
-        </button>
-        <button id="historyButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold mt-3 transition-all duration-300 ease-in-out">
-          Meu Histórico
-        </button>
-        
-        <!-- NOVO BOTÃO DE ADMIN (escondido por padrão) -->
-        <button id="adminButton" class="btn-danger w-full py-3 rounded-lg text-white font-semibold mt-3 transition-all duration-300 ease-in-out" style="display: none;">
-          Painel de Administração
-        </button>
-        
-        <div id="requestSpinner" class="spinner mx-auto mt-6" style="display: none;"></div>
+        <div id="requestSpinner" class="spinner mx-auto mt-6 hidden"></div>
         <p id="requestError" class="text-red-400 text-center mt-4"></p>
       </div>
 
-      <!-- TELA DE SUCESSO -->
-      <div id="successScreen">
-        <h2 class="text-xl font-bold text-center text-green-400 mb-4">Números Gerados!</h2>
-        <p class="text-center text-gray-300 mb-6">Os seguintes números foram registrados para você:</p>
+      <div id="successScreen" class="hidden text-center">
+        <h2 class="text-xl font-bold text-green-400 mb-4">Sucesso!</h2>
         <div id="generatedNumbers" class="flex flex-wrap justify-center gap-2 mb-6"></div>
-        <button id="newRequestButton" class="btn-primary w-full py-3 rounded-lg text-white font-semibold mt-6 transition-all duration-300 ease-in-out">
-          Solicitar Mais
-        </button>
+        <button id="newRequestButton" class="btn-primary w-full py-3 rounded-lg text-white font-semibold">Novo Pedido</button>
       </div>
 
-      <!-- TELA DE HISTÓRICO -->
-      <div id="historyScreen">
-        <h2 class="text-xl font-semibold text-center mb-6">Meu Histórico</h2>
-        <div id="historySpinner" class="spinner mx-auto mt-6"></div>
+      <div id="historyScreen" class="hidden">
+        <h2 class="text-xl font-semibold text-center mb-4">Histórico</h2>
         <div id="historyContent" class="max-h-80 overflow-y-auto space-y-3 pr-2"></div>
-        <button id="backButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold mt-6 transition-all duration-300 ease-in-out">
-          Voltar
-        </button>
+        <div id="historySpinner" class="spinner mx-auto mt-6 hidden"></div>
+        <button id="backButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold mt-4">Voltar</button>
       </div>
-      
-      <!-- NOVA TELA DE ADMIN -->
-      <div id="adminScreen">
-        <h2 class="text-xl font-semibold text-center mb-6">Painel de Admin</h2>
-        
+
+      <div id="adminScreen" class="hidden">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold text-blue-300">Administração</h2>
+          <button id="closeAdmin" class="text-gray-400 hover:text-white"><i class="ph ph-x text-xl"></i></button>
+        </div>
+
         <div id="adminSpinner" class="spinner mx-auto mt-6"></div>
-        <p id="adminError" class="text-red-400 text-center mt-4"></p>
 
-        <!-- Conteúdo do Admin (carregado dinamicamente) -->
-        <div id="adminContent" class="max-h-96 overflow-y-auto space-y-6 pr-2">
+        <div id="adminContent" class="hidden text-sm space-y-6 max-h-[400px] overflow-y-auto pr-2">
           
-          <!-- Seção 1: Gerenciar Usuários -->
-          <section>
-            <h3 class="text-lg font-semibold text-blue-300 mb-3">Gerenciar Usuários</h3>
-            
-            <!-- Adicionar Novo Usuário -->
-            <div class="flex space-x-2 mb-4">
-              <input type="text" id="newUserNameInput" class="input-futuristic w-full px-3 py-2 rounded-lg" placeholder="Nome do Novo Usuário">
-              <select id="newUserLevelInput" class="input-futuristic px-3 py-2 rounded-lg">
-                <option value="Padrão">Padrão</option>
-                <option value="Admin">Admin</option>
+          <div>
+            <h3 class="font-bold text-gray-300 mb-2 border-b border-gray-600 pb-1">Contadores (Próximo Nº / Ano)</h3>
+            <div class="grid grid-cols-3 gap-2 items-center mb-2">
+              <span class="text-gray-400">Memo:</span>
+              <input type="number" id="admMemoNext" class="input-futuristic p-1 rounded text-center">
+              <input type="number" id="admMemoYear" class="input-futuristic p-1 rounded text-center">
+            </div>
+            <div class="grid grid-cols-3 gap-2 items-center mb-2">
+              <span class="text-gray-400">Ofício:</span>
+              <input type="number" id="admOficioNext" class="input-futuristic p-1 rounded text-center">
+              <input type="number" id="admOficioYear" class="input-futuristic p-1 rounded text-center">
+            </div>
+            <div class="grid grid-cols-3 gap-2 items-center mb-2">
+              <span class="text-gray-400">Portaria:</span>
+              <input type="number" id="admPortariaNext" class="input-futuristic p-1 rounded text-center">
+              <input type="number" id="admPortariaYear" class="input-futuristic p-1 rounded text-center">
+            </div>
+            <button id="saveConfigBtn" class="btn-primary w-full py-2 rounded mt-2 text-xs font-bold">Salvar Contadores</button>
+          </div>
+
+          <div>
+            <h3 class="font-bold text-gray-300 mb-2 border-b border-gray-600 pb-1">Gerenciar Usuários</h3>
+            <div class="flex space-x-2 mb-2">
+              <input type="text" id="newUserName" placeholder="Nome" class="input-futuristic flex-1 p-2 rounded">
+              <select id="newUserRole" class="input-futuristic p-2 rounded bg-gray-800">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
               </select>
+              <button id="addUserBtn" class="btn-success px-3 rounded"><i class="ph ph-plus"></i></button>
             </div>
-            <button id="addUserButton" class="btn-success w-full py-2 rounded-lg text-sm font-semibold mb-4">Adicionar Usuário</button>
-            <p id="adminUserError" class="text-red-400 text-center text-sm mb-2"></p>
             
-            <!-- Lista de Usuários Atuais -->
-            <div id="userList" class="space-y-2">
-              <!-- Usuários serão injetados aqui (ex: <div class="user-list-item">...</div>) -->
-            </div>
-          </section>
+            <div id="usersList" class="space-y-2 max-h-40 overflow-y-auto bg-gray-900/50 p-2 rounded">
+              </div>
+          </div>
           
-          <!-- Seção 2: Configurações de Sequência -->
-          <section>
-            <h3 class="text-lg font-semibold text-blue-300 mb-3">Configurações de Sequência</h3>
-            <p id="adminSettingsError" class="text-red-400 text-center text-sm mb-2"></p>
-            
-            <!-- Formulário de Memorando -->
-            <form id="memoSettingsForm" class="space-y-2 mb-4">
-              <h4 class="font-medium text-white">Memorando</h4>
-              <div class="grid grid-cols-2 gap-2">
-                <input type="text" id="memoStart" class="input-disabled" disabled>
-                <input type="number" id="memoEnd" class="input-futuristic" placeholder="Fim">
-                <input type="number" id="memoNext" class="input-futuristic" placeholder="Próximo">
-                <input type="text" id="memoYear" class="input-disabled" disabled>
-              </div>
-            </form>
-            
-            <!-- Formulário de Ofício -->
-            <form id="oficioSettingsForm" class="space-y-2 mb-4">
-              <h4 class="font-medium text-white">Ofício</h4>
-              <div class="grid grid-cols-2 gap-2">
-                <input type="text" id="oficioStart" class="input-disabled" disabled>
-                <input type="number" id="oficioEnd" class="input-futuristic" placeholder="Fim">
-                <input type="number" id="oficioNext" class="input-futuristic" placeholder="Próximo">
-                <input type="text" id="oficioYear" class="input-disabled" disabled>
-              </div>
-            </form>
-            
-            <button id="saveSettingsButton" class="btn-primary w-full py-3 rounded-lg font-semibold">Salvar Configurações</button>
-          </section>
-
-        </div> <!-- Fim do adminContent -->
-
-        <button id="adminBackButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold mt-6 transition-all duration-300 ease-in-out">
-          Voltar
-        </button>
+        </div>
       </div>
 
     </div>
-    
-    <!-- Rodapé Desenvolvedor -->
-    <footer class="text-center text-gray-400 text-sm mt-6 opacity-80">
-      Desenvolvido por Thiego Pereira
-    </footer>
-    
-  </div> <!-- Fim do Container Principal -->
+    <footer class="text-center text-gray-400 text-sm mt-6 opacity-80">Desenvolvido por Thiego Pereira</footer>
+  </div>
 
-  <!-- Modal de Confirmação de Cancelamento / Deleção -->
   <div id="confirmModal" class="modal-overlay">
-    <div class="modal-box">
-      <h2 id="modalTitle" class="text-xl font-bold text-center text-white mb-4">Confirmar Ação</h2>
-      <p id="modalMessage" class="text-center text-gray-300 mb-6">Tem certeza?</p>
+    <div class="modal-box bg-gray-800 p-6 rounded-xl w-90 max-w-sm border border-gray-600">
+      <h2 class="text-xl font-bold text-center mb-4">Confirmar?</h2>
+      <p id="modalMessage" class="text-center text-gray-300 mb-6">Essa ação não pode ser desfeita.</p>
       <div class="flex justify-center space-x-4">
-        <button id="modalCancelButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold">Não</button>
-        <button id="modalConfirmButton" class="btn-danger w-full py-3 rounded-lg text-white font-semibold">Sim</button>
+        <button id="modalCancel" class="btn-secondary w-full py-3 rounded text-white">Não</button>
+        <button id="modalConfirm" class="btn-danger w-full py-3 rounded text-white">Sim</button>
       </div>
     </div>
   </div>
 
-  <!-- Carrega o nosso JavaScript principal -->
-  <script src="app.js"></script>
-  
-  <!-- Regista o nosso Service Worker (PWA) -->
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-          .then(registration => {
-            console.log('Service Worker registado com sucesso:', registration);
-          })
-          .catch(error => {
-            console.log('Falha ao registar o Service Worker:', error);
-          });
+    // URL da API (ATUALIZE DEPOIS DO DEPLOY!)
+    const API_URL = "https://script.google.com/macros/s/AKfycbwlMRr9_DLQKUzzWHI8FQ_02VcfbmIiU_VQJQKCqyoLxsBrl8SRb0nUdmQGlGJuZXm0/exec";
+
+    // Estado Global
+    let currentUser = { name: '', role: '' };
+    let currentDocType = 'Memorando';
+    let pendingAction = null;
+
+    // Elementos DOM
+    const screens = {
+      login: document.getElementById('loginScreen'),
+      main: document.getElementById('mainScreen'),
+      success: document.getElementById('successScreen'),
+      history: document.getElementById('historyScreen'),
+      admin: document.getElementById('adminScreen')
+    };
+
+    // Helper: Show Screen
+    function showScreen(name) {
+      Object.values(screens).forEach(s => s.classList.add('hidden'));
+      screens[name].classList.remove('hidden');
+    }
+
+    // Helper: Call API
+    async function callApi(action, payload = {}) {
+      const resp = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action, payload })
+      });
+      const json = await resp.json();
+      if (json.status !== 'success') throw new Error(json.message);
+      return json.data;
+    }
+
+    // --- LÓGICA DE LOGIN ---
+    document.getElementById('loginButton').addEventListener('click', async () => {
+      const name = document.getElementById('nameInput').value;
+      if (!name) return alert('Digite seu nome');
+      
+      document.getElementById('loginButton').classList.add('hidden');
+      document.getElementById('loginSpinner').classList.remove('hidden');
+
+      try {
+        const res = await callApi('checkUser', { name });
+        if (res.exists) {
+          currentUser = { name: res.name, role: res.role };
+          
+          document.getElementById('userName').innerText = res.name.split(' ')[0];
+          
+          // Configurações de Admin
+          if (res.role === 'admin') {
+            document.getElementById('adminButton').classList.remove('hidden');
+            document.getElementById('adminBadge').classList.remove('hidden');
+          } else {
+            document.getElementById('adminButton').classList.add('hidden');
+            document.getElementById('adminBadge').classList.add('hidden');
+          }
+
+          showScreen('main');
+        } else {
+          document.getElementById('loginError').innerText = 'Usuário não encontrado.';
+        }
+      } catch (e) {
+        document.getElementById('loginError').innerText = e.message;
+      } finally {
+        document.getElementById('loginButton').classList.remove('hidden');
+        document.getElementById('loginSpinner').classList.add('hidden');
+      }
+    });
+
+    // --- LÓGICA DE SOLICITAÇÃO ---
+    // Abas
+    ['memo', 'oficio', 'portaria'].forEach(type => {
+      document.getElementById(type+'Tab').addEventListener('click', (e) => {
+        document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentDocType = e.target.innerText; // Memorando, Ofício, Portaria
+      });
+    });
+
+    // Quantidade
+    window.adjustQuantity = (val) => {
+      const input = document.getElementById('quantityInput');
+      let v = parseInt(input.value) + val;
+      if (v < 1) v = 1;
+      input.value = v;
+    };
+
+    // Botão Solicitar
+    document.getElementById('requestButton').addEventListener('click', async () => {
+      const qty = document.getElementById('quantityInput').value;
+      const purpose = document.getElementById('purposeInput').value;
+      if (!purpose) return alert('Preencha a finalidade');
+
+      document.getElementById('requestButton').classList.add('hidden');
+      document.getElementById('requestSpinner').classList.remove('hidden');
+
+      try {
+        const nums = await callApi('requestNumbers', {
+          userName: currentUser.name,
+          quantity: qty,
+          purpose: purpose,
+          tipo: currentDocType
+        });
+        
+        const container = document.getElementById('generatedNumbers');
+        container.innerHTML = nums.map(n => `<span class="bg-gray-700 px-4 py-2 rounded-full font-bold">${n}</span>`).join('');
+        showScreen('success');
+      } catch (e) {
+        alert(e.message);
+      } finally {
+        document.getElementById('requestButton').classList.remove('hidden');
+        document.getElementById('requestSpinner').classList.add('hidden');
+      }
+    });
+
+    document.getElementById('newRequestButton').addEventListener('click', () => {
+      document.getElementById('purposeInput').value = '';
+      showScreen('main');
+    });
+
+    // --- LÓGICA DE HISTÓRICO ---
+    document.getElementById('historyButton').addEventListener('click', async () => {
+      showScreen('history');
+      const list = document.getElementById('historyContent');
+      list.innerHTML = '';
+      document.getElementById('historySpinner').classList.remove('hidden');
+
+      try {
+        // Envia Role para o backend saber se deve mandar tudo ou só do user
+        const history = await callApi('getUserHistory', { name: currentUser.name, role: currentUser.role });
+        document.getElementById('historySpinner').classList.add('hidden');
+
+        if (history.length === 0) list.innerHTML = '<p class="text-center text-gray-500">Sem registros.</p>';
+
+        history.forEach(item => {
+          const isCancel = item.status === 'Cancelado';
+          // Se for admin, mostra de quem é o documento
+          const ownerBadge = (currentUser.role === 'admin' && item.owner) 
+            ? `<span class="text-xs text-yellow-500 block">Autor: ${item.owner}</span>` 
+            : '';
+
+          list.innerHTML += `
+            <div class="bg-gray-800 p-3 rounded border border-gray-700 ${isCancel ? 'opacity-50' : ''}">
+              <div class="flex justify-between">
+                <div>
+                  <div class="font-bold text-blue-300">${item.memoNumber} (${item.tipo})</div>
+                  ${ownerBadge}
+                  <div class="text-sm text-gray-300 mt-1">${item.purpose}</div>
+                  <div class="text-xs text-gray-500 mt-2">${new Date(item.timestamp).toLocaleString()}</div>
+                  ${isCancel ? '<span class="text-red-500 text-xs font-bold">CANCELADO</span>' : ''}
+                </div>
+                ${!isCancel ? `<button onclick="askCancel(${item.rowNumber})" class="text-gray-400 hover:text-red-500 h-8 w-8">&times;</button>` : ''}
+              </div>
+            </div>
+          `;
+        });
+      } catch (e) {
+        list.innerHTML = `<p class="text-red-400">${e.message}</p>`;
+      }
+    });
+
+    document.getElementById('backButton').addEventListener('click', () => showScreen('main'));
+
+    // Cancelamento
+    window.askCancel = (row) => {
+      pendingAction = async () => {
+        try {
+          await callApi('cancelDocument', { rowNumber: row, userName: currentUser.name, role: currentUser.role });
+          document.getElementById('historyButton').click(); // Recarrega
+        } catch (e) { alert(e.message); }
+      };
+      document.getElementById('confirmModal').classList.add('visible');
+    };
+
+    // Modal Events
+    document.getElementById('modalCancel').onclick = () => document.getElementById('confirmModal').classList.remove('visible');
+    document.getElementById('modalConfirm').onclick = () => {
+      if(pendingAction) pendingAction();
+      document.getElementById('confirmModal').classList.remove('visible');
+    };
+
+
+    // --- LÓGICA DO PAINEL ADMIN ---
+    
+    // Abrir Painel
+    document.getElementById('adminButton').addEventListener('click', async () => {
+      showScreen('admin');
+      document.getElementById('adminSpinner').classList.remove('hidden');
+      document.getElementById('adminContent').classList.add('hidden');
+      
+      try {
+        const data = await callApi('getAdminData', { role: currentUser.role });
+        
+        // Preenche Contadores
+        document.getElementById('admMemoNext').value = data.counters.memo.next;
+        document.getElementById('admMemoYear').value = data.counters.memo.year;
+        document.getElementById('admOficioNext').value = data.counters.oficio.next;
+        document.getElementById('admOficioYear').value = data.counters.oficio.year;
+        document.getElementById('admPortariaNext').value = data.counters.portaria.next;
+        document.getElementById('admPortariaYear').value = data.counters.portaria.year;
+
+        // Preenche Lista Users
+        renderUsersList(data.users);
+
+        document.getElementById('adminSpinner').classList.add('hidden');
+        document.getElementById('adminContent').classList.remove('hidden');
+      } catch (e) {
+        alert('Erro ao carregar dados Admin: ' + e.message);
+        showScreen('main');
+      }
+    });
+
+    document.getElementById('closeAdmin').addEventListener('click', () => showScreen('main'));
+
+    // Salvar Configurações
+    document.getElementById('saveConfigBtn').addEventListener('click', async () => {
+      const payload = {
+        configs: {
+          memo: { next: document.getElementById('admMemoNext').value, year: document.getElementById('admMemoYear').value },
+          oficio: { next: document.getElementById('admOficioNext').value, year: document.getElementById('admOficioYear').value },
+          portaria: { next: document.getElementById('admPortariaNext').value, year: document.getElementById('admPortariaYear').value }
+        },
+        role: currentUser.role
+      };
+      
+      try {
+        await callApi('saveConfigs', payload);
+        alert('Configurações Salvas!');
+      } catch (e) { alert(e.message); }
+    });
+
+    // Gerenciar Usuários
+    function renderUsersList(users) {
+      const list = document.getElementById('usersList');
+      list.innerHTML = '';
+      users.forEach(u => {
+        list.innerHTML += `
+          <div class="flex justify-between items-center bg-gray-800 p-2 rounded text-xs">
+            <span>${u.name} <span class="text-gray-500">(${u.role})</span></span>
+            <button onclick="removeUser('${u.name}')" class="text-red-400 hover:text-red-200"><i class="ph ph-trash"></i></button>
+          </div>
+        `;
       });
     }
+
+    document.getElementById('addUserBtn').addEventListener('click', async () => {
+      const name = document.getElementById('newUserName').value;
+      const role = document.getElementById('newUserRole').value;
+      if(!name) return;
+
+      try {
+        await callApi('manageUser', { type: 'add', targetName: name, targetRole: role, role: currentUser.role });
+        document.getElementById('newUserName').value = '';
+        // Recarrega lista
+        document.getElementById('adminButton').click(); 
+      } catch (e) { alert(e.message); }
+    });
+
+    window.removeUser = async (targetName) => {
+      if(!confirm(`Remover ${targetName}?`)) return;
+      try {
+        await callApi('manageUser', { type: 'remove', targetName: targetName, role: currentUser.role });
+        document.getElementById('adminButton').click();
+      } catch (e) { alert(e.message); }
+    };
+
+    // Inicialização
+    (async function init() {
+      try {
+        const details = await callApi('getAppDetails');
+        document.getElementById('appName').innerText = details.appName;
+        document.getElementById('appLogo').src = details.logoUrl;
+        document.getElementById('appHeader').classList.remove('opacity-0');
+      } catch(e) { console.error(e); }
+    })();
+
   </script>
 </body>
 </html>
