@@ -30,7 +30,6 @@
     }
     
     /* --- CORREÇÃO DAS SETAS (SPIN BUTTONS) --- */
-    /* Garante que em qualquer navegador as setas sumam */
     input[type=number]::-webkit-inner-spin-button, 
     input[type=number]::-webkit-outer-spin-button { 
       -webkit-appearance: none; 
@@ -49,11 +48,49 @@
     .btn-tab { background-color: #374151; color: #d1d5db; flex: 1; padding: 0.75rem; border-radius: 0.5rem; }
     .btn-tab.active { background: linear-gradient(90deg, #3b82f6, #2563eb); color: white; }
     
+    /* --- ANIMAÇÃO SIMPLES (SPINNER) --- */
     .spinner {
       border: 4px solid rgba(255, 255, 255, 0.2); border-left-color: #ffffff;
       border-radius: 50%; width: 32px; height: 32px; animation: spin 1s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* --- NOVA ANIMAÇÃO MODERNA (ORBITAL) --- */
+    .loader-container {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 1rem;
+    }
+    .loader-ring {
+      position: relative; width: 64px; height: 64px;
+    }
+    .loader-ring::before, .loader-ring::after {
+      content: ""; position: absolute; border-radius: 50%; border: 4px solid transparent;
+    }
+    .loader-ring::before {
+      top: 0; left: 0; width: 100%; height: 100%;
+      border-top-color: #3b82f6; /* Blue Neon */
+      border-bottom-color: #3b82f6;
+      animation: spin-right 1.5s linear infinite;
+      filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.7));
+    }
+    .loader-ring::after {
+      top: 12px; left: 12px; width: calc(100% - 24px); height: calc(100% - 24px);
+      border-left-color: #10b981; /* Green Neon */
+      border-right-color: #10b981;
+      animation: spin-left 1.2s linear infinite;
+      filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.7));
+    }
+    @keyframes spin-right { 100% { transform: rotate(360deg); } }
+    @keyframes spin-left { 100% { transform: rotate(-360deg); } }
+    
+    .loader-text {
+      margin-top: 1rem; font-size: 0.9rem; font-weight: 500; color: #9ca3af; letter-spacing: 0.05em;
+      animation: pulse-text 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse-text { 
+      0%, 100% { opacity: 0.6; } 
+      50% { opacity: 1; text-shadow: 0 0 8px rgba(255,255,255,0.3); } 
+    }
 
     /* Modal Overlay */
     .modal-overlay {
@@ -125,7 +162,12 @@
         <button id="requestButton" class="btn-success w-full py-3 rounded-lg text-white font-semibold mb-3 shadow-lg active:scale-95 transition-transform">Solicitar</button>
         <button id="historyButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold shadow-lg active:scale-95 transition-transform">Histórico</button>
         
-        <div id="requestSpinner" class="spinner mx-auto mt-6 hidden"></div>
+        <!-- NOVA ANIMAÇÃO DE CARREGAMENTO -->
+        <div id="requestAnimation" class="loader-container hidden">
+            <div class="loader-ring"></div>
+            <div id="loadingText" class="loader-text">Processando...</div>
+        </div>
+
         <p id="requestError" class="text-red-400 text-center mt-4"></p>
       </div>
 
@@ -140,7 +182,7 @@
       <div id="historyScreen" class="hidden">
         <h2 class="text-xl font-semibold text-center mb-4">Histórico</h2>
         
-        <!-- NOVO: Filtro de Pesquisa -->
+        <!-- Filtro de Pesquisa -->
         <div class="relative mb-4">
           <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-gray-400"></i>
           <input type="text" id="historyFilter" placeholder="Filtrar por nome, número ou finalidade..." 
@@ -188,14 +230,13 @@
           <div>
             <h3 class="font-bold text-gray-300 mb-2 border-b border-gray-600 pb-1">Gerenciar Usuários</h3>
             
-            <!-- CORREÇÃO: Layout do Botão Adicionar -->
+            <!-- Layout Botão Adicionar -->
             <div class="flex space-x-2 mb-2 w-full">
               <input type="text" id="newUserName" placeholder="Nome" class="input-futuristic flex-1 p-2 rounded min-w-0">
               <select id="newUserRole" class="input-futuristic p-2 rounded bg-gray-800 flex-shrink-0 w-24">
                 <option value="user">User</option>
                 <option value="admin">Admin</option>
               </select>
-              <!-- flex-shrink-0 impede que o botão diminua -->
               <button id="addUserBtn" class="btn-success px-3 rounded flex-shrink-0 flex items-center justify-center shadow hover:brightness-110">
                 <i class="ph ph-plus text-lg font-bold"></i>
               </button>
@@ -227,15 +268,14 @@
 
   <script>
     // URL da API (Use a sua URL atual de DEPLOY)
-    const API_URL = "https://script.google.com/macros/s/AKfycby1s6YtiJ8nfY9M7-liZbuPMqo2mOfSbnOW4FFRc39Mw9YzHON0XLIljhjZkEM9D3-wXQ/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbwlMRr9_DLQKUzzWHI8FQ_02VcfbmIiU_VQJQKCqyoLxsBrl8SRb0nUdmQGlGJuZXm0/exec";
 
     // Estado Global
     let currentUser = { name: '', role: '' };
     let currentDocType = 'Memorando';
     let pendingAction = null;
-    let fullHistory = []; // Armazena o histórico completo para filtrar localmente
+    let fullHistory = []; 
 
-    // Elementos DOM
     const screens = {
       login: document.getElementById('loginScreen'),
       main: document.getElementById('mainScreen'),
@@ -244,13 +284,11 @@
       admin: document.getElementById('adminScreen')
     };
 
-    // Helper: Show Screen
     function showScreen(name) {
       Object.values(screens).forEach(s => s.classList.add('hidden'));
       screens[name].classList.remove('hidden');
     }
 
-    // Helper: Call API
     async function callApi(action, payload = {}) {
       const resp = await fetch(API_URL, {
         method: 'POST',
@@ -261,7 +299,7 @@
       return json.data;
     }
 
-    // --- LÓGICA DE LOGIN ---
+    // --- LOGIN ---
     document.getElementById('loginButton').addEventListener('click', async () => {
       const name = document.getElementById('nameInput').value;
       if (!name) return alert('Digite seu nome');
@@ -273,10 +311,8 @@
         const res = await callApi('checkUser', { name });
         if (res.exists) {
           currentUser = { name: res.name, role: res.role };
-          
           document.getElementById('userName').innerText = res.name.split(' ')[0];
           
-          // Configurações de Admin
           if (res.role === 'admin') {
             document.getElementById('adminButton').classList.remove('hidden');
             document.getElementById('adminBadge').classList.remove('hidden');
@@ -284,7 +320,6 @@
             document.getElementById('adminButton').classList.add('hidden');
             document.getElementById('adminBadge').classList.add('hidden');
           }
-
           showScreen('main');
         } else {
           document.getElementById('loginError').innerText = 'Usuário não encontrado.';
@@ -297,17 +332,15 @@
       }
     });
 
-    // --- LÓGICA DE SOLICITAÇÃO ---
-    // Abas
+    // --- SOLICITAÇÃO ---
     ['memo', 'oficio', 'portaria'].forEach(type => {
       document.getElementById(type+'Tab').addEventListener('click', (e) => {
         document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active'));
         e.target.classList.add('active');
-        currentDocType = e.target.innerText; // Memorando, Ofício, Portaria
+        currentDocType = e.target.innerText; 
       });
     });
 
-    // Quantidade
     window.adjustQuantity = (val) => {
       const input = document.getElementById('quantityInput');
       let v = parseInt(input.value) + val;
@@ -315,16 +348,26 @@
       input.value = v;
     };
 
-    // Botão Solicitar
+    // Botão Solicitar COM NOVA ANIMAÇÃO
     document.getElementById('requestButton').addEventListener('click', async () => {
       const qty = document.getElementById('quantityInput').value;
       const purpose = document.getElementById('purposeInput').value;
       if (!purpose) return alert('Preencha a finalidade');
 
+      // Esconde botão e mostra ANIMAÇÃO
       document.getElementById('requestButton').classList.add('hidden');
-      document.getElementById('requestSpinner').classList.remove('hidden');
+      document.getElementById('historyButton').classList.add('hidden');
+      const animDiv = document.getElementById('requestAnimation');
+      animDiv.classList.remove('hidden');
 
+      // Texto dinâmico de carregamento
+      const txtDiv = document.getElementById('loadingText');
+      txtDiv.innerText = "Conectando ao banco...";
+      
       try {
+        setTimeout(() => { txtDiv.innerText = "Gerando Sequência..."; }, 800);
+        setTimeout(() => { txtDiv.innerText = "Registrando dados..."; }, 1800);
+
         const nums = await callApi('requestNumbers', {
           userName: currentUser.name,
           quantity: qty,
@@ -338,8 +381,10 @@
       } catch (e) {
         alert(e.message);
       } finally {
+        // Restaura estado inicial
         document.getElementById('requestButton').classList.remove('hidden');
-        document.getElementById('requestSpinner').classList.add('hidden');
+        document.getElementById('historyButton').classList.remove('hidden');
+        animDiv.classList.add('hidden');
       }
     });
 
@@ -348,9 +393,7 @@
       showScreen('main');
     });
 
-    // --- LÓGICA DE HISTÓRICO E FILTRO ---
-    
-    // Função para renderizar lista
+    // --- HISTÓRICO ---
     function renderHistoryList(list) {
       const container = document.getElementById('historyContent');
       container.innerHTML = '';
@@ -362,7 +405,6 @@
 
       list.forEach(item => {
         const isCancel = item.status === 'Cancelado';
-        // Se for admin, mostra de quem é o documento
         const ownerBadge = (currentUser.role === 'admin' && item.owner) 
           ? `<div class="text-xs text-yellow-500 font-semibold mb-1 flex items-center gap-1"><i class="ph ph-user"></i> ${item.owner}</div>` 
           : '';
@@ -386,7 +428,6 @@
       });
     }
 
-    // Input de Filtro
     document.getElementById('historyFilter').addEventListener('input', (e) => {
       const term = e.target.value.toLowerCase();
       const filtered = fullHistory.filter(item => {
@@ -401,10 +442,9 @@
       showScreen('history');
       document.getElementById('historyContent').innerHTML = '';
       document.getElementById('historySpinner').classList.remove('hidden');
-      document.getElementById('historyFilter').value = ''; // Limpa filtro ao abrir
+      document.getElementById('historyFilter').value = ''; 
 
       try {
-        // Busca histórico completo
         fullHistory = await callApi('getUserHistory', { name: currentUser.name, role: currentUser.role });
         document.getElementById('historySpinner').classList.add('hidden');
         renderHistoryList(fullHistory);
@@ -420,23 +460,19 @@
       pendingAction = async () => {
         try {
           await callApi('cancelDocument', { rowNumber: row, userName: currentUser.name, role: currentUser.role });
-          document.getElementById('historyButton').click(); // Recarrega
+          document.getElementById('historyButton').click(); 
         } catch (e) { alert(e.message); }
       };
       document.getElementById('confirmModal').classList.add('visible');
     };
 
-    // Modal Events
     document.getElementById('modalCancel').onclick = () => document.getElementById('confirmModal').classList.remove('visible');
     document.getElementById('modalConfirm').onclick = () => {
       if(pendingAction) pendingAction();
       document.getElementById('confirmModal').classList.remove('visible');
     };
 
-
-    // --- LÓGICA DO PAINEL ADMIN ---
-    
-    // Abrir Painel
+    // --- ADMIN ---
     document.getElementById('adminButton').addEventListener('click', async () => {
       showScreen('admin');
       document.getElementById('adminSpinner').classList.remove('hidden');
@@ -445,7 +481,6 @@
       try {
         const data = await callApi('getAdminData', { role: currentUser.role });
         
-        // Preenche Contadores
         document.getElementById('admMemoNext').value = data.counters.memo.next;
         document.getElementById('admMemoYear').value = data.counters.memo.year;
         document.getElementById('admOficioNext').value = data.counters.oficio.next;
@@ -453,20 +488,17 @@
         document.getElementById('admPortariaNext').value = data.counters.portaria.next;
         document.getElementById('admPortariaYear').value = data.counters.portaria.year;
 
-        // Preenche Lista Users
         renderUsersList(data.users);
-
         document.getElementById('adminSpinner').classList.add('hidden');
         document.getElementById('adminContent').classList.remove('hidden');
       } catch (e) {
-        alert('Erro ao carregar dados Admin: ' + e.message);
+        alert('Erro: ' + e.message);
         showScreen('main');
       }
     });
 
     document.getElementById('closeAdmin').addEventListener('click', () => showScreen('main'));
 
-    // Salvar Configurações
     document.getElementById('saveConfigBtn').addEventListener('click', async () => {
       const payload = {
         configs: {
@@ -476,14 +508,12 @@
         },
         role: currentUser.role
       };
-      
       try {
         await callApi('saveConfigs', payload);
         alert('Configurações Salvas!');
       } catch (e) { alert(e.message); }
     });
 
-    // Gerenciar Usuários
     function renderUsersList(users) {
       const list = document.getElementById('usersList');
       list.innerHTML = '';
@@ -512,7 +542,6 @@
       try {
         await callApi('manageUser', { type: 'add', targetName: name, targetRole: role, role: currentUser.role });
         document.getElementById('newUserName').value = '';
-        // Recarrega lista
         const data = await callApi('getAdminData', { role: currentUser.role });
         renderUsersList(data.users);
       } catch (e) { alert(e.message); }
@@ -531,7 +560,6 @@
       } catch (e) { alert(e.message); }
     };
 
-    // Inicialização
     (async function init() {
       try {
         const details = await callApi('getAppDetails');
