@@ -6,6 +6,7 @@
   <title>Controle de Documentos</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Ícones Phosphor -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
   <style>
@@ -27,7 +28,20 @@
       background-color: rgba(17, 24, 39, 0.9); border-color: rgba(59, 130, 246, 0.8);
       outline: none; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
     }
-    /* Estilos de botões igual ao anterior... */
+    
+    /* --- CORREÇÃO DAS SETAS (SPIN BUTTONS) --- */
+    /* Garante que em qualquer navegador as setas sumam */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] {
+      -moz-appearance: textfield; /* Firefox */
+      appearance: textfield;
+    }
+
+    /* Estilos de botões */
     .btn-primary { background: linear-gradient(90deg, #3b82f6, #2563eb); }
     .btn-success { background: linear-gradient(90deg, #10b981, #059669); }
     .btn-danger { background: linear-gradient(90deg, #ef4444, #dc2626); }
@@ -58,6 +72,7 @@
 
   <div class="w-full max-w-md">
 
+    <!-- Header -->
     <div id="appHeader" class="text-center mb-6 opacity-0 transition-opacity duration-500 relative">
       <div class="flex justify-center mb-3">
         <div class="w-16 h-16 rounded-lg bg-white/10 p-1 border-2 border-gray-600 backdrop-blur-sm shadow-md">
@@ -66,6 +81,7 @@
       </div>
       <h1 id="appName" class="text-2xl font-semibold text-white shadow-sm">Carregando...</h1>
       
+      <!-- Botão Admin (Engrenagem) -->
       <button id="adminButton" class="hidden absolute top-0 right-0 p-2 text-gray-400 hover:text-white transition-colors" title="Painel Admin">
         <i class="ph ph-gear text-2xl"></i>
       </button>
@@ -73,6 +89,7 @@
 
     <div class="app-card rounded-2xl shadow-2xl p-6 sm:p-8 relative">
 
+      <!-- TELA LOGIN -->
       <div id="loginScreen">
         <h2 class="text-xl font-semibold text-center mb-6">Login</h2>
         <input type="text" id="nameInput" class="input-futuristic w-full px-4 py-3 rounded-lg mb-4" placeholder="Seu nome completo">
@@ -81,9 +98,11 @@
         <p id="loginError" class="text-red-400 text-center mt-4"></p>
       </div>
 
+      <!-- TELA PRINCIPAL -->
       <div id="mainScreen" class="hidden">
         <div class="flex justify-between items-center mb-2">
           <h2 class="text-xl font-semibold">Olá, <span id="userName" class="text-blue-300"></span>!</h2>
+          <!-- Badge de Admin -->
           <span id="adminBadge" class="hidden bg-blue-600 text-xs px-2 py-1 rounded font-bold uppercase">Admin</span>
         </div>
         
@@ -95,33 +114,45 @@
         </div>
 
         <div class="flex items-center justify-center space-x-3 mb-6">
-          <button onclick="adjustQuantity(-1)" class="btn-secondary w-10 h-10 rounded-full font-bold">-</button>
-          <input type="number" id="quantityInput" value="1" readonly class="input-futuristic w-16 h-10 text-center rounded-lg">
-          <button onclick="adjustQuantity(1)" class="btn-secondary w-10 h-10 rounded-full font-bold">+</button>
+          <button onclick="adjustQuantity(-1)" class="btn-secondary w-10 h-10 rounded-full font-bold shadow-lg active:scale-95 transition-transform">-</button>
+          <!-- CORREÇÃO: Input sem setas -->
+          <input type="number" id="quantityInput" value="1" readonly class="input-futuristic w-16 h-10 text-center rounded-lg font-bold text-xl">
+          <button onclick="adjustQuantity(1)" class="btn-secondary w-10 h-10 rounded-full font-bold shadow-lg active:scale-95 transition-transform">+</button>
         </div>
 
         <textarea id="purposeInput" rows="3" class="input-futuristic w-full px-4 py-3 rounded-lg mb-4" placeholder="Finalidade..."></textarea>
         
-        <button id="requestButton" class="btn-success w-full py-3 rounded-lg text-white font-semibold mb-3">Solicitar</button>
-        <button id="historyButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold">Histórico</button>
+        <button id="requestButton" class="btn-success w-full py-3 rounded-lg text-white font-semibold mb-3 shadow-lg active:scale-95 transition-transform">Solicitar</button>
+        <button id="historyButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold shadow-lg active:scale-95 transition-transform">Histórico</button>
         
         <div id="requestSpinner" class="spinner mx-auto mt-6 hidden"></div>
         <p id="requestError" class="text-red-400 text-center mt-4"></p>
       </div>
 
+      <!-- TELA SUCESSO -->
       <div id="successScreen" class="hidden text-center">
         <h2 class="text-xl font-bold text-green-400 mb-4">Sucesso!</h2>
         <div id="generatedNumbers" class="flex flex-wrap justify-center gap-2 mb-6"></div>
         <button id="newRequestButton" class="btn-primary w-full py-3 rounded-lg text-white font-semibold">Novo Pedido</button>
       </div>
 
+      <!-- TELA HISTÓRICO -->
       <div id="historyScreen" class="hidden">
         <h2 class="text-xl font-semibold text-center mb-4">Histórico</h2>
+        
+        <!-- NOVO: Filtro de Pesquisa -->
+        <div class="relative mb-4">
+          <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-gray-400"></i>
+          <input type="text" id="historyFilter" placeholder="Filtrar por nome, número ou finalidade..." 
+                 class="input-futuristic w-full pl-9 pr-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+        </div>
+
         <div id="historyContent" class="max-h-80 overflow-y-auto space-y-3 pr-2"></div>
         <div id="historySpinner" class="spinner mx-auto mt-6 hidden"></div>
         <button id="backButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold mt-4">Voltar</button>
       </div>
 
+      <!-- TELA ADMIN (Painel) -->
       <div id="adminScreen" class="hidden">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-xl font-semibold text-blue-300">Administração</h2>
@@ -132,6 +163,7 @@
 
         <div id="adminContent" class="hidden text-sm space-y-6 max-h-[400px] overflow-y-auto pr-2">
           
+          <!-- Seção Contadores -->
           <div>
             <h3 class="font-bold text-gray-300 mb-2 border-b border-gray-600 pb-1">Contadores (Próximo Nº / Ano)</h3>
             <div class="grid grid-cols-3 gap-2 items-center mb-2">
@@ -149,22 +181,29 @@
               <input type="number" id="admPortariaNext" class="input-futuristic p-1 rounded text-center">
               <input type="number" id="admPortariaYear" class="input-futuristic p-1 rounded text-center">
             </div>
-            <button id="saveConfigBtn" class="btn-primary w-full py-2 rounded mt-2 text-xs font-bold">Salvar Contadores</button>
+            <button id="saveConfigBtn" class="btn-primary w-full py-2 rounded mt-2 text-xs font-bold shadow hover:brightness-110">Salvar Contadores</button>
           </div>
 
+          <!-- Seção Usuários -->
           <div>
             <h3 class="font-bold text-gray-300 mb-2 border-b border-gray-600 pb-1">Gerenciar Usuários</h3>
-            <div class="flex space-x-2 mb-2">
-              <input type="text" id="newUserName" placeholder="Nome" class="input-futuristic flex-1 p-2 rounded">
-              <select id="newUserRole" class="input-futuristic p-2 rounded bg-gray-800">
+            
+            <!-- CORREÇÃO: Layout do Botão Adicionar -->
+            <div class="flex space-x-2 mb-2 w-full">
+              <input type="text" id="newUserName" placeholder="Nome" class="input-futuristic flex-1 p-2 rounded min-w-0">
+              <select id="newUserRole" class="input-futuristic p-2 rounded bg-gray-800 flex-shrink-0 w-24">
                 <option value="user">User</option>
                 <option value="admin">Admin</option>
               </select>
-              <button id="addUserBtn" class="btn-success px-3 rounded"><i class="ph ph-plus"></i></button>
+              <!-- flex-shrink-0 impede que o botão diminua -->
+              <button id="addUserBtn" class="btn-success px-3 rounded flex-shrink-0 flex items-center justify-center shadow hover:brightness-110">
+                <i class="ph ph-plus text-lg font-bold"></i>
+              </button>
             </div>
             
-            <div id="usersList" class="space-y-2 max-h-40 overflow-y-auto bg-gray-900/50 p-2 rounded">
-              </div>
+            <div id="usersList" class="space-y-2 max-h-40 overflow-y-auto bg-gray-900/50 p-2 rounded border border-gray-700/50">
+              <!-- Lista de Users -->
+            </div>
           </div>
           
         </div>
@@ -174,25 +213,27 @@
     <footer class="text-center text-gray-400 text-sm mt-6 opacity-80">Desenvolvido por Thiego Pereira</footer>
   </div>
 
+  <!-- Modal Confirm -->
   <div id="confirmModal" class="modal-overlay">
-    <div class="modal-box bg-gray-800 p-6 rounded-xl w-90 max-w-sm border border-gray-600">
-      <h2 class="text-xl font-bold text-center mb-4">Confirmar?</h2>
+    <div class="modal-box bg-gray-800 p-6 rounded-xl w-90 max-w-sm border border-gray-600 shadow-2xl">
+      <h2 class="text-xl font-bold text-center mb-4 text-white">Confirmar?</h2>
       <p id="modalMessage" class="text-center text-gray-300 mb-6">Essa ação não pode ser desfeita.</p>
       <div class="flex justify-center space-x-4">
-        <button id="modalCancel" class="btn-secondary w-full py-3 rounded text-white">Não</button>
-        <button id="modalConfirm" class="btn-danger w-full py-3 rounded text-white">Sim</button>
+        <button id="modalCancel" class="btn-secondary w-full py-3 rounded text-white font-medium hover:bg-gray-600 transition-colors">Não</button>
+        <button id="modalConfirm" class="btn-danger w-full py-3 rounded text-white font-medium hover:bg-red-600 transition-colors">Sim</button>
       </div>
     </div>
   </div>
 
   <script>
-    // URL da API (ATUALIZE DEPOIS DO DEPLOY!)
+    // URL da API (Use a sua URL atual de DEPLOY)
     const API_URL = "https://script.google.com/macros/s/AKfycby1s6YtiJ8nfY9M7-liZbuPMqo2mOfSbnOW4FFRc39Mw9YzHON0XLIljhjZkEM9D3-wXQ/exec";
 
     // Estado Global
     let currentUser = { name: '', role: '' };
     let currentDocType = 'Memorando';
     let pendingAction = null;
+    let fullHistory = []; // Armazena o histórico completo para filtrar localmente
 
     // Elementos DOM
     const screens = {
@@ -292,7 +333,7 @@
         });
         
         const container = document.getElementById('generatedNumbers');
-        container.innerHTML = nums.map(n => `<span class="bg-gray-700 px-4 py-2 rounded-full font-bold">${n}</span>`).join('');
+        container.innerHTML = nums.map(n => `<span class="bg-gray-700 px-4 py-2 rounded-full font-bold shadow-md border border-gray-600">${n}</span>`).join('');
         showScreen('success');
       } catch (e) {
         alert(e.message);
@@ -307,44 +348,68 @@
       showScreen('main');
     });
 
-    // --- LÓGICA DE HISTÓRICO ---
+    // --- LÓGICA DE HISTÓRICO E FILTRO ---
+    
+    // Função para renderizar lista
+    function renderHistoryList(list) {
+      const container = document.getElementById('historyContent');
+      container.innerHTML = '';
+      
+      if (list.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-500 mt-4">Nenhum registro encontrado.</p>';
+        return;
+      }
+
+      list.forEach(item => {
+        const isCancel = item.status === 'Cancelado';
+        // Se for admin, mostra de quem é o documento
+        const ownerBadge = (currentUser.role === 'admin' && item.owner) 
+          ? `<div class="text-xs text-yellow-500 font-semibold mb-1 flex items-center gap-1"><i class="ph ph-user"></i> ${item.owner}</div>` 
+          : '';
+
+        container.innerHTML += `
+          <div class="bg-gray-800 p-3 rounded-lg border border-gray-700 hover:border-gray-600 transition-colors ${isCancel ? 'opacity-50' : ''}">
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                ${ownerBadge}
+                <div class="font-bold text-blue-300 text-lg">${item.memoNumber} <span class="text-sm text-gray-400 font-normal">(${item.tipo})</span></div>
+                <div class="text-sm text-gray-300 mt-1 leading-snug">${item.purpose}</div>
+                <div class="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                  <i class="ph ph-calendar"></i> ${new Date(item.timestamp).toLocaleString()}
+                </div>
+                ${isCancel ? '<div class="text-red-500 text-xs font-bold mt-1 uppercase tracking-wide">Cancelado</div>' : ''}
+              </div>
+              ${!isCancel ? `<button onclick="askCancel(${item.rowNumber})" class="text-gray-400 hover:text-red-500 p-1 rounded-full hover:bg-white/5 transition-colors" title="Cancelar"><i class="ph ph-x text-lg"></i></button>` : ''}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // Input de Filtro
+    document.getElementById('historyFilter').addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase();
+      const filtered = fullHistory.filter(item => {
+        return (item.owner && item.owner.toLowerCase().includes(term)) ||
+               item.memoNumber.toLowerCase().includes(term) ||
+               item.purpose.toLowerCase().includes(term);
+      });
+      renderHistoryList(filtered);
+    });
+
     document.getElementById('historyButton').addEventListener('click', async () => {
       showScreen('history');
-      const list = document.getElementById('historyContent');
-      list.innerHTML = '';
+      document.getElementById('historyContent').innerHTML = '';
       document.getElementById('historySpinner').classList.remove('hidden');
+      document.getElementById('historyFilter').value = ''; // Limpa filtro ao abrir
 
       try {
-        // Envia Role para o backend saber se deve mandar tudo ou só do user
-        const history = await callApi('getUserHistory', { name: currentUser.name, role: currentUser.role });
+        // Busca histórico completo
+        fullHistory = await callApi('getUserHistory', { name: currentUser.name, role: currentUser.role });
         document.getElementById('historySpinner').classList.add('hidden');
-
-        if (history.length === 0) list.innerHTML = '<p class="text-center text-gray-500">Sem registros.</p>';
-
-        history.forEach(item => {
-          const isCancel = item.status === 'Cancelado';
-          // Se for admin, mostra de quem é o documento
-          const ownerBadge = (currentUser.role === 'admin' && item.owner) 
-            ? `<span class="text-xs text-yellow-500 block">Autor: ${item.owner}</span>` 
-            : '';
-
-          list.innerHTML += `
-            <div class="bg-gray-800 p-3 rounded border border-gray-700 ${isCancel ? 'opacity-50' : ''}">
-              <div class="flex justify-between">
-                <div>
-                  <div class="font-bold text-blue-300">${item.memoNumber} (${item.tipo})</div>
-                  ${ownerBadge}
-                  <div class="text-sm text-gray-300 mt-1">${item.purpose}</div>
-                  <div class="text-xs text-gray-500 mt-2">${new Date(item.timestamp).toLocaleString()}</div>
-                  ${isCancel ? '<span class="text-red-500 text-xs font-bold">CANCELADO</span>' : ''}
-                </div>
-                ${!isCancel ? `<button onclick="askCancel(${item.rowNumber})" class="text-gray-400 hover:text-red-500 h-8 w-8">&times;</button>` : ''}
-              </div>
-            </div>
-          `;
-        });
+        renderHistoryList(fullHistory);
       } catch (e) {
-        list.innerHTML = `<p class="text-red-400">${e.message}</p>`;
+        document.getElementById('historyContent').innerHTML = `<p class="text-red-400 text-center">${e.message}</p>`;
       }
     });
 
@@ -422,11 +487,13 @@
     function renderUsersList(users) {
       const list = document.getElementById('usersList');
       list.innerHTML = '';
+      if(users.length === 0) list.innerHTML = '<p class="text-xs text-gray-500 text-center">Nenhum usuário.</p>';
+      
       users.forEach(u => {
         list.innerHTML += `
-          <div class="flex justify-between items-center bg-gray-800 p-2 rounded text-xs">
-            <span>${u.name} <span class="text-gray-500">(${u.role})</span></span>
-            <button onclick="removeUser('${u.name}')" class="text-red-400 hover:text-red-200"><i class="ph ph-trash"></i></button>
+          <div class="flex justify-between items-center bg-gray-800 p-2 rounded text-xs border border-gray-700">
+            <span class="font-medium truncate pr-2 text-gray-300">${u.name} <span class="text-blue-400 font-bold ml-1 text-[10px] uppercase border border-blue-900 bg-blue-900/30 px-1 rounded">${u.role}</span></span>
+            <button onclick="removeUser('${u.name}')" class="text-red-400 hover:text-red-200 hover:bg-red-900/30 p-1 rounded transition-colors"><i class="ph ph-trash text-lg"></i></button>
           </div>
         `;
       });
@@ -437,19 +504,30 @@
       const role = document.getElementById('newUserRole').value;
       if(!name) return;
 
+      const btn = document.getElementById('addUserBtn');
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = '<i class="ph ph-spinner animate-spin"></i>';
+      btn.disabled = true;
+
       try {
         await callApi('manageUser', { type: 'add', targetName: name, targetRole: role, role: currentUser.role });
         document.getElementById('newUserName').value = '';
         // Recarrega lista
-        document.getElementById('adminButton').click(); 
+        const data = await callApi('getAdminData', { role: currentUser.role });
+        renderUsersList(data.users);
       } catch (e) { alert(e.message); }
+      finally {
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+      }
     });
 
     window.removeUser = async (targetName) => {
       if(!confirm(`Remover ${targetName}?`)) return;
       try {
         await callApi('manageUser', { type: 'remove', targetName: targetName, role: currentUser.role });
-        document.getElementById('adminButton').click();
+        const data = await callApi('getAdminData', { role: currentUser.role });
+        renderUsersList(data.users);
       } catch (e) { alert(e.message); }
     };
 
@@ -466,4 +544,3 @@
   </script>
 </body>
 </html>
-
