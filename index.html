@@ -3,16 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <!-- 1. MUDAR AQUI: Título da Aba -->
-  <title>Documentos - IPR - RIACHUELO</title>
+  <title>Documentos - NOME DA INSTITUIÇÃO</title>
   
   <!-- Configurações PWA (App Instalável) -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1e3a8a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <!-- 2. MUDAR AQUI: Nome do App no iPhone -->
-  <meta name="apple-mobile-web-app-title" content="IPR">
+  <meta name="apple-mobile-web-app-title" content="NOME DA INSTITUIÇÃO">
   <link rel="apple-touch-icon" href="logo.png">
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -97,6 +95,21 @@
     }
     .modal-overlay.visible { opacity: 1; pointer-events: auto; }
 
+    /* Visualizador de Documentos (Full Screen) */
+    .viewer-modal {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: #111827; z-index: 70;
+      display: flex; flex-direction: column;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .viewer-modal.visible { opacity: 1; pointer-events: auto; }
+    .viewer-header {
+      padding: 1rem; background: #1f2937; border-bottom: 1px solid #374151;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .viewer-content { flex: 1; position: relative; width: 100%; height: 100%; }
+    .viewer-iframe { width: 100%; height: 100%; border: none; background: #fff; }
+
     /* Toast Notification */
     .toast-container {
         position: fixed; top: 1rem; right: 1rem; z-index: 60;
@@ -128,6 +141,32 @@
     <p class="text-blue-300 text-sm animate-pulse">Por favor, aguarde.</p>
   </div>
 
+  <!-- VISUALIZADOR DE DOCUMENTOS (NOVO) -->
+  <div id="docViewerModal" class="viewer-modal">
+    <div class="viewer-header">
+      <h3 class="text-white font-bold text-lg flex items-center gap-2">
+        <i class="ph ph-file-pdf text-red-400"></i> Visualizador
+      </h3>
+      <div class="flex gap-3">
+        <a id="downloadBtn" href="#" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors">
+          <i class="ph ph-download-simple"></i> Baixar
+        </a>
+        <button onclick="closeViewer()" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+          Fechar
+        </button>
+      </div>
+    </div>
+    <div class="viewer-content">
+      <div id="viewerLoading" class="absolute inset-0 flex items-center justify-center bg-gray-900 text-white">
+        <div class="flex flex-col items-center">
+          <div class="spinner mb-2"></div>
+          <p class="text-sm text-gray-400">Carregando documento...</p>
+        </div>
+      </div>
+      <iframe id="docFrame" class="viewer-iframe" src=""></iframe>
+    </div>
+  </div>
+
   <div class="w-full max-w-md">
 
     <!-- Header FIXO (Logo e Nome) -->
@@ -139,9 +178,8 @@
         </div>
       </div>
       
-      <!-- 3. MUDAR AQUI: Nome Visível na Tela -->
       <h1 class="text-lg md:text-xl font-bold text-white shadow-sm leading-tight px-4 drop-shadow-md">
-        INSTITUTO DE PREV DOS SERV MUNICIPAIS <br/> DE RIACHUELO - RN
+        NOME DA INSTITUIÇÃO <br/> SIGLA OU CIDADE
       </h1>
       
       <!-- Botão Admin -->
@@ -339,11 +377,10 @@
   <script>
     // --- URL DA API ---
     // Substitua pela URL da sua nova implantação no sistema real
-    const API_URL = "https://script.google.com/macros/s/AKfycbzJWk8RntqV4TlBjzK1VEyRE9oWEuqqLX1I0m9_97DPANML37kLDbgu2-NZIYdP_UQQ/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbzFPxtf9U7cPoLGEMqLHMxb6BzzxQqJ13MptRgt8EbMPlmqoG9Zaco6AXgMd5c-LYNz/exec";
 
     // --- REGISTRO DO SERVICE WORKER (PWA) ---
     if ('serviceWorker' in navigator) {
-      // Verifica se o protocolo é http ou https (evita erro em blob: ou file:)
       if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('./sw.js')
@@ -373,6 +410,11 @@
 
     const blockingOverlay = document.getElementById('blockingOverlay');
     const toastContainer = document.getElementById('toastContainer');
+    // Viewer
+    const docViewerModal = document.getElementById('docViewerModal');
+    const docFrame = document.getElementById('docFrame');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const viewerLoading = document.getElementById('viewerLoading');
 
     function showScreen(name) {
       Object.values(screens).forEach(s => s.classList.add('hidden'));
@@ -422,6 +464,49 @@
       });
     }
 
+    // --- VISUALIZADOR DE DOCUMENTOS ---
+    window.openViewer = (url) => {
+        // Extrair ID do Google Drive (Padrão: /d/FILE_ID/ ou id=FILE_ID)
+        let fileId = "";
+        const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (match) {
+            fileId = match[1];
+        } else {
+            // Tenta pegar de parâmetros id=
+            const urlParams = new URLSearchParams(new URL(url).search);
+            fileId = urlParams.get("id");
+        }
+
+        if (!fileId) {
+            // Fallback: Abre em nova aba se não conseguir parsear
+            window.open(url, '_blank');
+            return;
+        }
+
+        // Monta URLs de Preview e Download Direto
+        const previewUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+        const directDownloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+
+        // Configura Modal
+        docFrame.src = ""; // Limpa anterior
+        viewerLoading.classList.remove('hidden'); // Mostra loading
+        docViewerModal.classList.add('visible'); // Abre modal
+        
+        // Define o source (com pequeno delay para transição)
+        setTimeout(() => {
+            docFrame.src = previewUrl;
+            // Esconde loading quando carregar (iframe load event)
+            docFrame.onload = () => viewerLoading.classList.add('hidden');
+        }, 300);
+
+        downloadBtn.href = directDownloadUrl;
+    };
+
+    window.closeViewer = () => {
+        docViewerModal.classList.remove('visible');
+        docFrame.src = ""; // Limpa para parar vídeo/processamento
+    };
+
     // --- COPIAR PARA CLIPBOARD ---
     window.copyToClipboard = (text) => {
         navigator.clipboard.writeText(text).then(() => {
@@ -433,7 +518,6 @@
     };
 
     // --- INICIALIZAÇÃO ---
-    // 4. MUDAR AQUI (Opcional): Alterei a chave do localStorage para ser genérica 'appUser'
     (function init() {
         const savedName = localStorage.getItem('appUser');
         if (savedName) {
@@ -676,9 +760,11 @@
         const ownerBadge = (currentUser.role === 'admin' && item.owner) 
           ? `<span class="text-[10px] bg-gray-700 text-gray-300 px-1.5 py-0.5 rounded ml-2 truncate max-w-[80px]">${item.owner.split(' ')[0]}</span>` : '';
 
+        // BOTÃO ABRIR MODIFICADO
         let actionButton = '';
         if (item.fileUrl && item.fileUrl !== '') {
-           actionButton = `<a href="${item.fileUrl}" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 text-xs font-bold shadow-lg shadow-blue-500/20" title="Ver Arquivo"><i class="ph ph-file-pdf text-lg"></i> Abrir</a>`;
+           // AGORA CHAMA openViewer(url)
+           actionButton = `<button onclick="openViewer('${item.fileUrl}')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 text-xs font-bold shadow-lg shadow-blue-500/20" title="Ver Arquivo"><i class="ph ph-eye text-lg"></i> Abrir</button>`;
         } else if (!isCancel) {
            if (currentUser.role === 'admin' || currentUser.name.trim().toLowerCase() === item.owner.trim().toLowerCase()) {
              actionButton = `<button onclick="triggerUpload(${item.rowNumber})" class="bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 text-xs font-bold border border-gray-600" title="Anexar Arquivo"><i class="ph ph-upload-simple text-lg"></i> Anexar</button>`;
@@ -767,7 +853,3 @@
   </script>
 </body>
 </html>
-
-
-
-
