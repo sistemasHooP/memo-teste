@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- 1. Título da Aba -->
   <title>Documentos - IPR - RN</title>
   
   <!-- Configurações PWA (App Instalável) -->
@@ -10,6 +11,7 @@
   <meta name="theme-color" content="#1e3a8a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <!-- 2. Nome do App no iPhone -->
   <meta name="apple-mobile-web-app-title" content="NOME DA INSTITUIÇÃO">
   <link rel="apple-touch-icon" href="logo.png">
 
@@ -42,6 +44,35 @@
     input[type=number]::-webkit-inner-spin-button, 
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
+    /* --- CORREÇÃO BARRA DE ROLAGEM (MOBILE & PC) --- */
+    /* Define a largura da barra */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    /* Fundo da barra */
+    ::-webkit-scrollbar-track {
+      background: rgba(17, 24, 39, 0.5); 
+      border-radius: 4px;
+    }
+    /* A parte que mexe (thumb) */
+    ::-webkit-scrollbar-thumb {
+      background: #4b5563; 
+      border-radius: 4px;
+      border: 1px solid rgba(31, 41, 55, 0.5);
+    }
+    /* Cor ao passar o mouse ou tocar */
+    ::-webkit-scrollbar-thumb:hover {
+      background: #6b7280; 
+    }
+    
+    /* Garante rolagem suave no iOS/Android */
+    .smooth-scroll {
+      -webkit-overflow-scrolling: touch; /* Habilita inércia no iOS */
+      scrollbar-width: thin; /* Firefox */
+      scrollbar-color: #4b5563 rgba(17, 24, 39, 0.5); /* Firefox */
+    }
 
     /* Botões */
     .btn-primary { background: linear-gradient(90deg, #2563eb, #1d4ed8); }
@@ -141,7 +172,7 @@
     <p class="text-blue-300 text-sm animate-pulse">Por favor, aguarde.</p>
   </div>
 
-  <!-- VISUALIZADOR DE DOCUMENTOS (NOVO) -->
+  <!-- VISUALIZADOR DE DOCUMENTOS -->
   <div id="docViewerModal" class="viewer-modal">
     <div class="viewer-header">
       <h3 class="text-white font-bold text-lg flex items-center gap-2">
@@ -178,6 +209,7 @@
         </div>
       </div>
       
+      <!-- 3. Nome Visível na Tela -->
       <h1 class="text-lg md:text-xl font-bold text-white shadow-sm leading-tight px-4 drop-shadow-md">
         INSTITUTO DE PREV DOS SERV MUNICIPAIS <br/> DE RIACHUELO
       </h1>
@@ -264,7 +296,7 @@
         <button id="newRequestButton" class="btn-primary w-full py-3 rounded-lg text-white font-semibold">Voltar ao Início</button>
       </div>
 
-      <!-- TELA HISTÓRICO -->
+      <!-- TELA HISTÓRICO (Com Scroll Corrigido) -->
       <div id="historyScreen" class="hidden">
         <div class="flex items-center justify-between mb-2">
           <h2 class="text-xl font-semibold">Histórico</h2>
@@ -288,7 +320,8 @@
                  class="input-futuristic w-full pl-9 pr-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
         </div>
 
-        <div id="historyContent" class="max-h-96 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-900"></div>
+        <!-- CONTAINER DA LISTA: Adicionada classe 'smooth-scroll' e CSS específico no head -->
+        <div id="historyContent" class="max-h-96 overflow-y-auto space-y-3 pr-2 smooth-scroll"></div>
         <div id="historySpinner" class="spinner mx-auto mt-6 hidden"></div>
         
         <button id="backButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold mt-4">Voltar</button>
@@ -303,7 +336,7 @@
 
         <div id="adminSpinner" class="spinner mx-auto mt-6"></div>
 
-        <div id="adminContent" class="hidden text-sm space-y-6 max-h-[400px] overflow-y-auto pr-2">
+        <div id="adminContent" class="hidden text-sm space-y-6 max-h-[400px] overflow-y-auto pr-2 smooth-scroll">
           <!-- Contadores -->
           <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
             <h3 class="font-bold text-gray-300 mb-2 pb-1 border-b border-gray-600">Numeração Atual</h3>
@@ -338,7 +371,7 @@
               </select>
               <button id="addUserBtn" class="btn-success px-3 rounded flex items-center justify-center shadow"><i class="ph ph-plus font-bold"></i></button>
             </div>
-            <div id="usersList" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
+            <div id="usersList" class="space-y-2 max-h-40 overflow-y-auto pr-1 smooth-scroll"></div>
           </div>
         </div>
       </div>
@@ -466,36 +499,29 @@
 
     // --- VISUALIZADOR DE DOCUMENTOS ---
     window.openViewer = (url) => {
-        // Extrair ID do Google Drive (Padrão: /d/FILE_ID/ ou id=FILE_ID)
         let fileId = "";
         const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
         if (match) {
             fileId = match[1];
         } else {
-            // Tenta pegar de parâmetros id=
             const urlParams = new URLSearchParams(new URL(url).search);
             fileId = urlParams.get("id");
         }
 
         if (!fileId) {
-            // Fallback: Abre em nova aba se não conseguir parsear
             window.open(url, '_blank');
             return;
         }
 
-        // Monta URLs de Preview e Download Direto
         const previewUrl = `https://drive.google.com/file/d/${fileId}/preview`;
         const directDownloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
 
-        // Configura Modal
-        docFrame.src = ""; // Limpa anterior
-        viewerLoading.classList.remove('hidden'); // Mostra loading
-        docViewerModal.classList.add('visible'); // Abre modal
+        docFrame.src = ""; 
+        viewerLoading.classList.remove('hidden'); 
+        docViewerModal.classList.add('visible'); 
         
-        // Define o source (com pequeno delay para transição)
         setTimeout(() => {
             docFrame.src = previewUrl;
-            // Esconde loading quando carregar (iframe load event)
             docFrame.onload = () => viewerLoading.classList.add('hidden');
         }, 300);
 
@@ -504,7 +530,7 @@
 
     window.closeViewer = () => {
         docViewerModal.classList.remove('visible');
-        docFrame.src = ""; // Limpa para parar vídeo/processamento
+        docFrame.src = ""; 
     };
 
     // --- COPIAR PARA CLIPBOARD ---
@@ -518,6 +544,7 @@
     };
 
     // --- INICIALIZAÇÃO ---
+    // 4. MUDANÇA: 'appUser' em vez de 'coronelPrevUser'
     (function init() {
         const savedName = localStorage.getItem('appUser');
         if (savedName) {
@@ -537,7 +564,7 @@
         const res = await callApi('checkUser', { name });
         if (res.exists) {
           currentUser = { name: res.name, role: res.role };
-          localStorage.setItem('appUser', res.name);
+          localStorage.setItem('appUser', res.name); // Salva genérico
           document.getElementById('userName').innerText = res.name.split(' ')[0];
           
           if (res.role === 'admin') {
@@ -708,11 +735,10 @@
         const cancelBtn = document.getElementById('editCancel');
         const oldHtml = btn.innerHTML;
         
-        // ANIMAÇÃO DE SPINNER E TRAVAMENTO
         btn.innerHTML = '<i class="ph ph-spinner animate-spin text-lg"></i> Salvando...';
         btn.disabled = true;
-        cancelBtn.disabled = true; // Trava o botão voltar
-        cancelBtn.classList.add('opacity-50', 'cursor-not-allowed'); // Feedback visual
+        cancelBtn.disabled = true; 
+        cancelBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
         try {
             await callApi('editPurpose', {
@@ -729,7 +755,7 @@
         } finally {
             btn.innerHTML = oldHtml;
             btn.disabled = false;
-            cancelBtn.disabled = false; // Destrava
+            cancelBtn.disabled = false;
             cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         }
     });
@@ -760,10 +786,8 @@
         const ownerBadge = (currentUser.role === 'admin' && item.owner) 
           ? `<span class="text-[10px] bg-gray-700 text-gray-300 px-1.5 py-0.5 rounded ml-2 truncate max-w-[80px]">${item.owner.split(' ')[0]}</span>` : '';
 
-        // BOTÃO ABRIR MODIFICADO
         let actionButton = '';
         if (item.fileUrl && item.fileUrl !== '') {
-           // AGORA CHAMA openViewer(url)
            actionButton = `<button onclick="openViewer('${item.fileUrl}')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 text-xs font-bold shadow-lg shadow-blue-500/20" title="Ver Arquivo"><i class="ph ph-eye text-lg"></i> Abrir</button>`;
         } else if (!isCancel) {
            if (currentUser.role === 'admin' || currentUser.name.trim().toLowerCase() === item.owner.trim().toLowerCase()) {
@@ -853,6 +877,3 @@
   </script>
 </body>
 </html>
-
-
-
