@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <!-- 1. Título da Aba -->
-  <title>Documentos - IPR - RN</title>
+  <title>Documentos - NOME DA INSTITUIÇÃO</title>
   
   <!-- Configurações PWA (App Instalável) -->
   <link rel="manifest" href="manifest.json">
@@ -21,9 +21,13 @@
 
   <style>
     body { font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+    
     .fundo-gradiente {
       background: linear-gradient(-45deg, #1e3a8a, #1e40af, #111827);
       background-size: 400% 400%; animation: gradientBG 15s ease infinite;
+      /* Correção de Scroll Mobile: Garante que o fundo cubra tudo mesmo com scroll */
+      min-height: 100vh;
+      width: 100%;
     }
     @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
     
@@ -46,23 +50,19 @@
     input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 
     /* --- CORREÇÃO BARRA DE ROLAGEM (MOBILE & PC) --- */
-    /* Define a largura da barra */
     ::-webkit-scrollbar {
       width: 8px;
       height: 8px;
     }
-    /* Fundo da barra */
     ::-webkit-scrollbar-track {
       background: rgba(17, 24, 39, 0.5); 
       border-radius: 4px;
     }
-    /* A parte que mexe (thumb) */
     ::-webkit-scrollbar-thumb {
       background: #4b5563; 
       border-radius: 4px;
       border: 1px solid rgba(31, 41, 55, 0.5);
     }
-    /* Cor ao passar o mouse ou tocar */
     ::-webkit-scrollbar-thumb:hover {
       background: #6b7280; 
     }
@@ -70,8 +70,9 @@
     /* Garante rolagem suave no iOS/Android */
     .smooth-scroll {
       -webkit-overflow-scrolling: touch; /* Habilita inércia no iOS */
-      scrollbar-width: thin; /* Firefox */
-      scrollbar-color: #4b5563 rgba(17, 24, 39, 0.5); /* Firefox */
+      scrollbar-width: thin; 
+      scrollbar-color: #4b5563 rgba(17, 24, 39, 0.5);
+      overscroll-behavior: contain; /* Evita rolar a página inteira quando chega no fim da lista */
     }
 
     /* Botões */
@@ -160,7 +161,8 @@
     .toast.error { border-left-color: #ef4444; }
   </style>
 </head>
-<body class="fundo-gradiente min-h-screen text-gray-200 flex items-center justify-center p-4">
+<!-- Ajuste no BODY: 'py-8' para espaçamento vertical e layout flex column -->
+<body class="fundo-gradiente text-gray-200 flex flex-col items-center justify-center p-4 py-8 md:py-4">
 
   <!-- TOAST CONTAINER -->
   <div id="toastContainer" class="toast-container"></div>
@@ -198,7 +200,7 @@
     </div>
   </div>
 
-  <div class="w-full max-w-md">
+  <div class="w-full max-w-md my-auto">
 
     <!-- Header FIXO (Logo e Nome) -->
     <div id="appHeader" class="text-center mb-6 relative">
@@ -211,7 +213,7 @@
       
       <!-- 3. Nome Visível na Tela -->
       <h1 class="text-lg md:text-xl font-bold text-white shadow-sm leading-tight px-4 drop-shadow-md">
-        INSTITUTO DE PREV DOS SERV MUNICIPAIS <br/> DE RIACHUELO
+        NOME DA INSTITUIÇÃO <br/> SIGLA OU CIDADE
       </h1>
       
       <!-- Botão Admin -->
@@ -220,7 +222,7 @@
       </button>
     </div>
 
-    <div class="app-card rounded-2xl shadow-2xl p-6 sm:p-8 relative">
+    <div class="app-card rounded-2xl shadow-2xl p-6 sm:p-8 relative mb-8">
 
       <!-- TELA LOGIN -->
       <div id="loginScreen">
@@ -320,8 +322,8 @@
                  class="input-futuristic w-full pl-9 pr-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
         </div>
 
-        <!-- CONTAINER DA LISTA: Adicionada classe 'smooth-scroll' e CSS específico no head -->
-        <div id="historyContent" class="max-h-96 overflow-y-auto space-y-3 pr-2 smooth-scroll"></div>
+        <!-- CONTAINER DA LISTA: Altura controlada e rolagem suave -->
+        <div id="historyContent" class="max-h-[60vh] sm:max-h-96 overflow-y-auto space-y-3 pr-2 smooth-scroll pb-4"></div>
         <div id="historySpinner" class="spinner mx-auto mt-6 hidden"></div>
         
         <button id="backButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold mt-4">Voltar</button>
@@ -336,7 +338,7 @@
 
         <div id="adminSpinner" class="spinner mx-auto mt-6"></div>
 
-        <div id="adminContent" class="hidden text-sm space-y-6 max-h-[400px] overflow-y-auto pr-2 smooth-scroll">
+        <div id="adminContent" class="hidden text-sm space-y-6 max-h-[60vh] sm:max-h-[400px] overflow-y-auto pr-2 smooth-scroll">
           <!-- Contadores -->
           <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
             <h3 class="font-bold text-gray-300 mb-2 pb-1 border-b border-gray-600">Numeração Atual</h3>
@@ -377,7 +379,7 @@
       </div>
 
     </div>
-    <footer class="text-center text-gray-500 text-xs mt-6">
+    <footer class="text-center text-gray-500 text-xs mt-6 mb-4">
       Desenvolvido por Thiego Pereira &copy; 2026
     </footer>
   </div>
@@ -408,8 +410,7 @@
   </div>
 
   <script>
-    // --- URL DA API ---
-    // Substitua pela URL da sua nova implantação no sistema real
+    // --- URL DA API ATUALIZADA ---
     const API_URL = "https://script.google.com/macros/s/AKfycbyMffwTqCcnPjThedIO1R6MwVgvkIk3N4Nz75heLOCYm83urfmDzhUWbYvJLBCCegUj0A/exec";
 
     // --- REGISTRO DO SERVICE WORKER (PWA) ---
@@ -755,7 +756,7 @@
         } finally {
             btn.innerHTML = oldHtml;
             btn.disabled = false;
-            cancelBtn.disabled = false;
+            cancelBtn.disabled = false; // Destrava
             cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         }
     });
