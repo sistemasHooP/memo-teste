@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- 1. MUDAR AQUI: Título da Aba -->
+  <title>Documentos - IPR - RIACHUELO</title>
+  
+  <!-- Configurações PWA (App Instalável) -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e3a8a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <!-- 2. MUDAR AQUI: Nome do App no iPhone -->
+  <meta name="apple-mobile-web-app-title" content="IPR">
+  <link rel="apple-touch-icon" href="logo.png">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <style>
+    body { font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+    .fundo-gradiente {
+      background: linear-gradient(-45deg, #1e3a8a, #1e40af, #111827);
+      background-size: 400% 400%; animation: gradientBG 15s ease infinite;
+    }
+    @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    
+    .app-card {
+      background-color: rgba(31, 41, 55, 0.7); backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+    .input-futuristic {
+      background-color: rgba(17, 24, 39, 0.6); border: 1px solid rgba(75, 85, 99, 0.8);
+      color: white; transition: all 0.3s;
+    }
+    .input-futuristic:focus {
+      background-color: rgba(17, 24, 39, 0.9); border-color: #3b82f6;
+      outline: none; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+    }
+    
+    /* Remove setas do input number */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
+    /* Botões */
+    .btn-primary { background: linear-gradient(90deg, #2563eb, #1d4ed8); }
+    .btn-success { background: linear-gradient(90deg, #059669, #047857); }
+    .btn-danger { background: linear-gradient(90deg, #dc2626, #b91c1c); }
+    .btn-secondary { background-color: #4b5563; }
+    .btn-tab { background-color: #374151; color: #d1d5db; flex: 1; padding: 0.75rem; border-radius: 0.5rem; transition: all 0.2s; }
+    .btn-tab.active { background: linear-gradient(90deg, #2563eb, #1e40af); color: white; transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); }
+
+    /* Spinner */
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.2); border-left-color: #ffffff;
+      border-radius: 50%; width: 32px; height: 32px; animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Animação Orbital */
+    .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; }
+    .loader-ring { position: relative; width: 64px; height: 64px; }
+    .loader-ring::before, .loader-ring::after { content: ""; position: absolute; border-radius: 50%; border: 4px solid transparent; }
+    .loader-ring::before {
+      top: 0; left: 0; width: 100%; height: 100%;
+      border-top-color: #3b82f6; border-bottom-color: #3b82f6;
+      animation: spin-right 1.5s linear infinite;
+    }
+    .loader-ring::after {
+      top: 12px; left: 12px; width: calc(100% - 24px); height: calc(100% - 24px);
+      border-left-color: #10b981; border-right-color: #10b981;
+      animation: spin-left 1.2s linear infinite;
+    }
+    @keyframes spin-right { 100% { transform: rotate(360deg); } }
+    @keyframes spin-left { 100% { transform: rotate(-360deg); } }
+    .loader-text { margin-top: 1rem; font-size: 0.9rem; font-weight: 500; color: #9ca3af; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+    /* Overlay de Bloqueio */
+    .blocking-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .blocking-overlay.visible { opacity: 1; pointer-events: auto; cursor: wait; }
+
+    /* Modal Comum */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+      display: flex; justify-content: center; align-items: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 50; padding: 1rem;
+    }
+    .modal-overlay.visible { opacity: 1; pointer-events: auto; }
+
+    /* Toast Notification */
+    .toast-container {
+        position: fixed; top: 1rem; right: 1rem; z-index: 60;
+        display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .toast {
+        background: rgba(31, 41, 55, 0.95); backdrop-filter: blur(10px);
+        color: white; padding: 1rem 1.5rem; border-radius: 0.75rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        display: flex; items-center; gap: 0.75rem;
+        border-left: 4px solid #3b82f6;
+        transform: translateX(120%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        min-width: 300px;
+    }
+    .toast.show { transform: translateX(0); }
+    .toast.success { border-left-color: #10b981; }
+    .toast.error { border-left-color: #ef4444; }
+  </style>
+</head>
+<body class="fundo-gradiente min-h-screen text-gray-200 flex items-center justify-center p-4">
+
+  <!-- TOAST CONTAINER -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- OVERLAY DE BLOQUEIO (UPLOAD) -->
+  <div id="blockingOverlay" class="blocking-overlay">
+    <div class="loader-ring mb-4"></div>
+    <h2 class="text-xl font-bold text-white mb-2">Processando...</h2>
+    <p class="text-blue-300 text-sm animate-pulse">Por favor, aguarde.</p>
+  </div>
+
+  <div class="w-full max-w-md">
+
+    <!-- Header FIXO (Logo e Nome) -->
+    <div id="appHeader" class="text-center mb-6 relative">
+      <div class="flex justify-center mb-4">
+        <!-- LOGO AJUSTADA -->
+        <div class="w-56 h-24 rounded-xl bg-white p-2 border-4 border-white/10 shadow-xl flex items-center justify-center overflow-hidden">
+          <img id="appLogo" src="logo.png" alt="Logo Instituição" class="w-full h-full object-contain">
+        </div>
+      </div>
+      
+      <!-- 3. MUDAR AQUI: Nome Visível na Tela -->
+      <h1 class="text-lg md:text-xl font-bold text-white shadow-sm leading-tight px-4 drop-shadow-md">
+        INSTITUTO DE PREV DOS SERV MUNICIPAIS <br/> DE RIACHUELO - RN
+      </h1>
+      
+      <!-- Botão Admin -->
+      <button id="adminButton" class="hidden absolute top-0 right-0 p-2 text-gray-400 hover:text-white transition-colors" title="Painel Admin">
+        <i class="ph ph-gear text-2xl"></i>
+      </button>
+    </div>
+
+    <div class="app-card rounded-2xl shadow-2xl p-6 sm:p-8 relative">
+
+      <!-- TELA LOGIN -->
+      <div id="loginScreen">
+        <h2 class="text-xl font-semibold text-center mb-6">Acesso ao Sistema</h2>
+        <input type="text" id="nameInput" class="input-futuristic w-full px-4 py-3 rounded-lg mb-4 text-center placeholder-gray-500" placeholder="Digite seu nome completo">
+        <button id="loginButton" class="btn-primary w-full py-3 rounded-lg text-white font-semibold shadow-lg hover:shadow-blue-500/30 transition-all transform hover:scale-[1.02]">Entrar</button>
+        <div id="loginSpinner" class="spinner mx-auto mt-6 hidden"></div>
+        <p id="loginError" class="text-red-400 text-center mt-4 text-sm font-medium"></p>
+      </div>
+
+      <!-- TELA PRINCIPAL -->
+      <div id="mainScreen" class="hidden">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-700">
+          <div class="text-sm text-gray-400">Bem-vindo,</div>
+          <div class="flex items-center gap-2">
+            <span id="userName" class="text-blue-300 font-bold truncate max-w-[120px]">User</span>
+            <span id="adminBadge" class="hidden bg-blue-600 text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Admin</span>
+            <button onclick="logout()" class="text-gray-500 hover:text-red-400 text-xs ml-2" title="Sair"><i class="ph ph-sign-out text-lg"></i></button>
+          </div>
+        </div>
+        
+        <p class="text-center text-gray-300 mb-4 font-medium">Selecione o documento:</p>
+        <div class="flex space-x-2 mb-6">
+          <button id="memoTab" class="btn-tab active">Memorando</button>
+          <button id="oficioTab" class="btn-tab">Ofício</button>
+          <button id="portariaTab" class="btn-tab">Portaria</button>
+        </div>
+
+        <div class="flex items-center justify-center space-x-4 mb-6 bg-gray-900/40 p-3 rounded-xl border border-gray-700/50">
+          <button onclick="adjustQuantity(-1)" class="btn-secondary w-8 h-8 rounded-full font-bold shadow hover:bg-gray-500 transition-colors">-</button>
+          <div class="flex flex-col items-center">
+             <span class="text-xs text-gray-400 uppercase tracking-widest">Quantidade</span>
+             <input type="number" id="quantityInput" value="1" readonly class="bg-transparent text-center font-bold text-2xl w-12 focus:outline-none text-white">
+          </div>
+          <button onclick="adjustQuantity(1)" class="btn-secondary w-8 h-8 rounded-full font-bold shadow hover:bg-gray-500 transition-colors">+</button>
+        </div>
+
+        <textarea id="purposeInput" rows="3" class="input-futuristic w-full px-4 py-3 rounded-lg mb-4 text-sm" placeholder="Descreva a finalidade do documento..."></textarea>
+        
+        <button id="requestButton" class="btn-success w-full py-3.5 rounded-lg text-white font-bold text-lg mb-3 shadow-lg hover:shadow-green-500/30 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2">
+          <i class="ph ph-check-circle text-xl"></i> Solicitar Número
+        </button>
+        
+        <button id="historyButton" class="btn-secondary w-full py-3 rounded-lg text-white font-medium shadow transition-colors flex items-center justify-center gap-2">
+          <i class="ph ph-folder-open text-lg"></i> Meus Documentos
+        </button>
+        
+        <!-- Loading Pequeno (Solicitação) -->
+        <div id="requestAnimation" class="loader-container hidden">
+            <div class="loader-ring w-8 h-8"></div>
+            <div id="loadingText" class="text-sm text-gray-400 mt-2">Processando...</div>
+        </div>
+
+        <p id="requestError" class="text-red-400 text-center mt-4 text-sm"></p>
+      </div>
+
+      <!-- TELA SUCESSO -->
+      <div id="successScreen" class="hidden text-center py-4">
+        <div class="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-green-500">
+           <i class="ph ph-check text-4xl text-green-500"></i>
+        </div>
+        <h2 class="text-xl font-bold text-white mb-2">Solicitação Realizada!</h2>
+        <p class="text-gray-400 text-sm mb-6">Seus números foram gerados.</p>
+        
+        <!-- Lista de Números com Botão Copiar -->
+        <div id="generatedNumbers" class="flex flex-col items-center gap-3 mb-8"></div>
+        
+        <div class="bg-blue-900/30 border border-blue-500/30 p-4 rounded-lg mb-6 text-sm text-blue-200">
+          <p class="mb-2 font-bold"><i class="ph ph-info"></i> Próximo Passo:</p>
+          Vá em <strong>"Meus Documentos"</strong> para anexar o arquivo PDF assinado.
+        </div>
+        
+        <button id="newRequestButton" class="btn-primary w-full py-3 rounded-lg text-white font-semibold">Voltar ao Início</button>
+      </div>
+
+      <!-- TELA HISTÓRICO -->
+      <div id="historyScreen" class="hidden">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-xl font-semibold">Histórico</h2>
+          <button id="refreshHistory" class="text-blue-400 hover:text-white p-2" title="Atualizar"><i class="ph ph-arrows-clockwise text-xl"></i></button>
+        </div>
+        
+        <!-- Toggle Filtro Pendentes -->
+        <div class="flex items-center justify-between mb-4 bg-gray-900/40 p-2 rounded-lg border border-gray-700/50">
+          <span class="text-sm text-gray-400 pl-2">Filtrar:</span>
+          <button id="togglePendingBtn" onclick="togglePendingFilter()" class="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-md transition-colors text-gray-300 border border-gray-600 flex items-center gap-1">
+            <i class="ph ph-funnel"></i> Apenas Pendentes
+          </button>
+        </div>
+
+        <!-- Input file Oculto -->
+        <input type="file" id="historyFileInput" class="hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+
+        <div class="relative mb-4">
+          <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-gray-400"></i>
+          <input type="text" id="historyFilter" placeholder="Buscar..." 
+                 class="input-futuristic w-full pl-9 pr-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div id="historyContent" class="max-h-96 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-900"></div>
+        <div id="historySpinner" class="spinner mx-auto mt-6 hidden"></div>
+        
+        <button id="backButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold mt-4">Voltar</button>
+      </div>
+
+      <!-- TELA ADMIN -->
+      <div id="adminScreen" class="hidden">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold text-blue-300">Administração</h2>
+          <button id="closeAdmin" class="text-gray-400 hover:text-white"><i class="ph ph-x text-xl"></i></button>
+        </div>
+
+        <div id="adminSpinner" class="spinner mx-auto mt-6"></div>
+
+        <div id="adminContent" class="hidden text-sm space-y-6 max-h-[400px] overflow-y-auto pr-2">
+          <!-- Contadores -->
+          <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
+            <h3 class="font-bold text-gray-300 mb-2 pb-1 border-b border-gray-600">Numeração Atual</h3>
+            <div class="space-y-2">
+               <div class="flex items-center justify-between">
+                  <span class="text-gray-400 w-20">Memo:</span>
+                  <input type="number" id="admMemoNext" class="input-futuristic p-1 rounded text-center w-20" placeholder="Prox">
+                  <input type="number" id="admMemoYear" class="input-futuristic p-1 rounded text-center w-20" placeholder="Ano">
+               </div>
+               <div class="flex items-center justify-between">
+                  <span class="text-gray-400 w-20">Ofício:</span>
+                  <input type="number" id="admOficioNext" class="input-futuristic p-1 rounded text-center w-20">
+                  <input type="number" id="admOficioYear" class="input-futuristic p-1 rounded text-center w-20">
+               </div>
+               <div class="flex items-center justify-between">
+                  <span class="text-gray-400 w-20">Portaria:</span>
+                  <input type="number" id="admPortariaNext" class="input-futuristic p-1 rounded text-center w-20">
+                  <input type="number" id="admPortariaYear" class="input-futuristic p-1 rounded text-center w-20">
+               </div>
+            </div>
+            <button id="saveConfigBtn" class="btn-primary w-full py-2 rounded mt-3 text-xs font-bold shadow hover:brightness-110">Salvar Alterações</button>
+          </div>
+
+          <!-- Usuários -->
+          <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
+            <h3 class="font-bold text-gray-300 mb-2 pb-1 border-b border-gray-600">Usuários</h3>
+            <div class="flex gap-2 mb-2">
+              <input type="text" id="newUserName" placeholder="Nome" class="input-futuristic flex-1 p-2 rounded min-w-0 text-xs">
+              <select id="newUserRole" class="input-futuristic p-2 rounded bg-gray-900 w-20 text-xs">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+              <button id="addUserBtn" class="btn-success px-3 rounded flex items-center justify-center shadow"><i class="ph ph-plus font-bold"></i></button>
+            </div>
+            <div id="usersList" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <footer class="text-center text-gray-500 text-xs mt-6">
+      Desenvolvido por Thiego Pereira &copy; 2026
+    </footer>
+  </div>
+
+  <!-- Modal Confirm (Cancelar) -->
+  <div id="confirmModal" class="modal-overlay">
+    <div class="modal-box bg-gray-800 p-6 rounded-xl w-80 border border-gray-600 shadow-2xl">
+      <h2 class="text-xl font-bold text-center mb-2 text-white">Tem certeza?</h2>
+      <p id="modalMessage" class="text-center text-gray-400 text-sm mb-6">Essa ação não pode ser desfeita.</p>
+      <div class="flex justify-center space-x-3">
+        <button id="modalCancel" class="btn-secondary flex-1 py-2 rounded text-white font-medium hover:bg-gray-600 text-sm">Cancelar</button>
+        <button id="modalConfirm" class="btn-danger flex-1 py-2 rounded text-white font-medium hover:bg-red-600 text-sm">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Edição (Finalidade) -->
+  <div id="editModal" class="modal-overlay">
+    <div class="modal-box bg-gray-800 p-6 rounded-xl w-80 border border-gray-600 shadow-2xl">
+      <h2 class="text-xl font-bold text-center mb-4 text-white">Editar Finalidade</h2>
+      <textarea id="editPurposeText" rows="4" class="input-futuristic w-full px-3 py-2 rounded-lg mb-4 text-sm" placeholder="Nova finalidade..."></textarea>
+      <div class="flex justify-center space-x-3">
+        <button id="editCancel" class="btn-secondary flex-1 py-2 rounded text-white font-medium hover:bg-gray-600 text-sm">Voltar</button>
+        <!-- BOTÃO COM ANIMAÇÃO -->
+        <button id="editSave" class="btn-primary flex-1 py-2 rounded text-white font-medium hover:bg-blue-600 text-sm flex items-center justify-center gap-2">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- URL DA API ---
+    // Substitua pela URL da sua nova implantação no sistema real
+    const API_URL = "https://script.google.com/macros/s/AKfycbzJWk8RntqV4TlBjzK1VEyRE9oWEuqqLX1I0m9_97DPANML37kLDbgu2-NZIYdP_UQQ/exec";
+
+    // --- REGISTRO DO SERVICE WORKER (PWA) ---
+    if ('serviceWorker' in navigator) {
+      // Verifica se o protocolo é http ou https (evita erro em blob: ou file:)
+      if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .then(registration => console.log('Service Worker registrado:', registration.scope))
+            .catch(err => console.error('Erro no Service Worker:', err));
+        });
+      }
+    }
+
+    // Estado Global
+    let currentUser = { name: '', role: '' };
+    let currentDocType = 'Memorando';
+    let pendingAction = null;
+    let fullHistory = []; 
+    let uploadTargetRow = null; 
+    let editTargetRow = null;
+    let isPendingFilterActive = false;
+
+    // Referências DOM
+    const screens = {
+      login: document.getElementById('loginScreen'),
+      main: document.getElementById('mainScreen'),
+      success: document.getElementById('successScreen'),
+      history: document.getElementById('historyScreen'),
+      admin: document.getElementById('adminScreen')
+    };
+
+    const blockingOverlay = document.getElementById('blockingOverlay');
+    const toastContainer = document.getElementById('toastContainer');
+
+    function showScreen(name) {
+      Object.values(screens).forEach(s => s.classList.add('hidden'));
+      screens[name].classList.remove('hidden');
+    }
+
+    function toggleBlocking(show) {
+      if (show) blockingOverlay.classList.add('visible');
+      else blockingOverlay.classList.remove('visible');
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        let icon = type === 'success' ? '<i class="ph ph-check-circle text-2xl text-green-400"></i>' : '<i class="ph ph-warning-circle text-2xl text-red-400"></i>';
+        toast.innerHTML = `
+            ${icon}
+            <div>
+                <h4 class="font-bold text-sm">${type === 'success' ? 'Sucesso' : 'Atenção'}</h4>
+                <p class="text-xs text-gray-300">${message}</p>
+            </div>
+        `;
+        toastContainer.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    async function callApi(action, payload = {}) {
+      const resp = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action, payload })
+      });
+      const json = await resp.json();
+      if (json.status !== 'success') throw new Error(json.message);
+      return json.data;
+    }
+
+    function readFileAsBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // --- COPIAR PARA CLIPBOARD ---
+    window.copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast(`Copiado: ${text}`, 'success');
+        }).catch(err => {
+            console.error('Erro ao copiar', err);
+            showToast('Erro ao copiar.', 'error');
+        });
+    };
+
+    // --- INICIALIZAÇÃO ---
+    // 4. MUDAR AQUI (Opcional): Alterei a chave do localStorage para ser genérica 'appUser'
+    (function init() {
+        const savedName = localStorage.getItem('appUser');
+        if (savedName) {
+            document.getElementById('nameInput').value = savedName;
+        }
+    })();
+
+    // --- LOGIN ---
+    document.getElementById('loginButton').addEventListener('click', async () => {
+      const name = document.getElementById('nameInput').value;
+      if (!name) return showToast('Digite seu nome.', 'error');
+      
+      document.getElementById('loginButton').classList.add('hidden');
+      document.getElementById('loginSpinner').classList.remove('hidden');
+
+      try {
+        const res = await callApi('checkUser', { name });
+        if (res.exists) {
+          currentUser = { name: res.name, role: res.role };
+          localStorage.setItem('appUser', res.name);
+          document.getElementById('userName').innerText = res.name.split(' ')[0];
+          
+          if (res.role === 'admin') {
+            document.getElementById('adminButton').classList.remove('hidden');
+            document.getElementById('adminBadge').classList.remove('hidden');
+          }
+          showScreen('main');
+        } else {
+          showToast('Usuário não encontrado.', 'error');
+        }
+      } catch (e) {
+        showToast('Erro de conexão.', 'error');
+      } finally {
+        document.getElementById('loginButton').classList.remove('hidden');
+        document.getElementById('loginSpinner').classList.add('hidden');
+      }
+    });
+
+    window.logout = () => {
+        localStorage.removeItem('appUser');
+        location.reload();
+    };
+
+    // --- SOLICITAÇÃO ---
+    ['memo', 'oficio', 'portaria'].forEach(type => {
+      document.getElementById(type+'Tab').addEventListener('click', (e) => {
+        document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentDocType = e.target.innerText; 
+      });
+    });
+
+    window.adjustQuantity = (val) => {
+      const input = document.getElementById('quantityInput');
+      let v = parseInt(input.value) + val;
+      if (v < 1) v = 1;
+      input.value = v;
+    };
+
+    document.getElementById('requestButton').addEventListener('click', async () => {
+      const qty = document.getElementById('quantityInput').value;
+      const purpose = document.getElementById('purposeInput').value;
+      if (!purpose) return showToast('Descreva a finalidade.', 'error');
+
+      document.getElementById('requestButton').classList.add('hidden');
+      document.getElementById('historyButton').classList.add('hidden');
+      const animDiv = document.getElementById('requestAnimation');
+      animDiv.classList.remove('hidden');
+      document.getElementById('loadingText').innerText = "Gerando Sequência...";
+
+      try {
+        const nums = await callApi('requestNumbers', {
+          userName: currentUser.name,
+          quantity: qty,
+          purpose: purpose,
+          tipo: currentDocType
+        });
+        
+        const container = document.getElementById('generatedNumbers');
+        container.innerHTML = nums.map(n => `
+            <div class="flex items-center gap-2 bg-gray-700 p-2 rounded-lg border border-gray-600 shadow-md">
+                <span class="text-white font-bold text-xl tracking-wider">${n}</span>
+                <button onclick="copyToClipboard('${n}')" class="text-gray-400 hover:text-white p-1 rounded hover:bg-gray-600 transition-colors" title="Copiar">
+                    <i class="ph ph-copy text-lg"></i>
+                </button>
+            </div>
+        `).join('');
+        
+        showToast('Documentos gerados!', 'success');
+        showScreen('success');
+      } catch (e) {
+        showToast(e.message, 'error');
+      } finally {
+        document.getElementById('requestButton').classList.remove('hidden');
+        document.getElementById('historyButton').classList.remove('hidden');
+        animDiv.classList.add('hidden');
+      }
+    });
+
+    document.getElementById('newRequestButton').addEventListener('click', () => {
+      document.getElementById('purposeInput').value = '';
+      showScreen('main');
+    });
+
+    // --- HISTÓRICO ---
+    window.togglePendingFilter = () => {
+        isPendingFilterActive = !isPendingFilterActive;
+        const btn = document.getElementById('togglePendingBtn');
+        if (isPendingFilterActive) {
+            btn.classList.add('bg-blue-600', 'text-white', 'border-blue-500');
+            btn.classList.remove('bg-gray-700', 'text-gray-300', 'border-gray-600');
+            btn.innerHTML = '<i class="ph ph-check"></i> Apenas Pendentes';
+        } else {
+            btn.classList.remove('bg-blue-600', 'text-white', 'border-blue-500');
+            btn.classList.add('bg-gray-700', 'text-gray-300', 'border-gray-600');
+            btn.innerHTML = '<i class="ph ph-funnel"></i> Apenas Pendentes';
+        }
+        applyFilters(document.getElementById('historyFilter').value.toLowerCase());
+    };
+
+    function applyFilters(term) {
+        const filtered = fullHistory.filter(item => {
+            const matchesText = (item.owner && item.owner.toLowerCase().includes(term)) ||
+                                item.memoNumber.toLowerCase().includes(term) ||
+                                item.purpose.toLowerCase().includes(term);
+            let matchesPending = true;
+            if (isPendingFilterActive) {
+                matchesPending = (!item.fileUrl || item.fileUrl === '') && item.status !== 'Cancelado';
+            }
+            return matchesText && matchesPending;
+        });
+        renderHistoryList(filtered);
+    }
+
+    // --- UPLOAD ---
+    window.triggerUpload = (rowNumber) => {
+      uploadTargetRow = rowNumber;
+      document.getElementById('historyFileInput').click();
+    };
+
+    document.getElementById('historyFileInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file || !uploadTargetRow) return;
+
+      if (file.size > 2 * 1024 * 1024) {
+        showToast("Máximo 2MB.", "error");
+        e.target.value = ''; return;
+      }
+
+      toggleBlocking(true);
+
+      try {
+        const base64 = await readFileAsBase64(file);
+        await callApi('attachDocument', {
+          rowNumber: uploadTargetRow,
+          userName: currentUser.name,
+          role: currentUser.role,
+          fileData: { base64: base64, mimeType: file.type, name: file.name }
+        });
+        await loadHistory();
+        showToast("Arquivo enviado!", "success");
+      } catch (err) {
+        showToast("Erro: " + err.message, "error");
+      } finally {
+        toggleBlocking(false);
+        e.target.value = ''; uploadTargetRow = null;
+      }
+    });
+
+    // --- EDIÇÃO (ANIMAÇÃO + TRAVA) ---
+    window.openEditModal = (row, currentText) => {
+        editTargetRow = row;
+        document.getElementById('editPurposeText').value = currentText;
+        document.getElementById('editModal').classList.add('visible');
+    };
+
+    document.getElementById('editCancel').addEventListener('click', () => {
+        document.getElementById('editModal').classList.remove('visible');
+        editTargetRow = null;
+    });
+
+    document.getElementById('editSave').addEventListener('click', async () => {
+        const newText = document.getElementById('editPurposeText').value;
+        if (!newText) return showToast('Texto vazio.', 'error');
+        if (!editTargetRow) return;
+
+        const btn = document.getElementById('editSave');
+        const cancelBtn = document.getElementById('editCancel');
+        const oldHtml = btn.innerHTML;
+        
+        // ANIMAÇÃO DE SPINNER E TRAVAMENTO
+        btn.innerHTML = '<i class="ph ph-spinner animate-spin text-lg"></i> Salvando...';
+        btn.disabled = true;
+        cancelBtn.disabled = true; // Trava o botão voltar
+        cancelBtn.classList.add('opacity-50', 'cursor-not-allowed'); // Feedback visual
+
+        try {
+            await callApi('editPurpose', {
+                rowNumber: editTargetRow,
+                newPurpose: newText,
+                userName: currentUser.name,
+                role: currentUser.role
+            });
+            document.getElementById('editModal').classList.remove('visible');
+            showToast('Finalidade atualizada!', 'success');
+            await loadHistory();
+        } catch (e) {
+            showToast(e.message, 'error');
+        } finally {
+            btn.innerHTML = oldHtml;
+            btn.disabled = false;
+            cancelBtn.disabled = false; // Destrava
+            cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    });
+
+    // --- CARREGAR DADOS ---
+    async function loadHistory() {
+      document.getElementById('historyContent').innerHTML = '';
+      document.getElementById('historySpinner').classList.remove('hidden');
+      try {
+        fullHistory = await callApi('getUserHistory', { name: currentUser.name, role: currentUser.role });
+        applyFilters(document.getElementById('historyFilter').value.toLowerCase());
+      } catch (e) {
+        document.getElementById('historyContent').innerHTML = `<p class="text-red-400 text-center text-sm mt-4">${e.message}</p>`;
+      } finally {
+        document.getElementById('historySpinner').classList.add('hidden');
+      }
+    }
+
+    function renderHistoryList(list) {
+      const container = document.getElementById('historyContent');
+      container.innerHTML = '';
+      if (list.length === 0) {
+        container.innerHTML = '<div class="text-center mt-8 text-gray-500"><i class="ph ph-files text-4xl mb-2 opacity-50"></i><p>Nenhum documento.</p></div>';
+        return;
+      }
+      list.forEach(item => {
+        const isCancel = item.status === 'Cancelado';
+        const ownerBadge = (currentUser.role === 'admin' && item.owner) 
+          ? `<span class="text-[10px] bg-gray-700 text-gray-300 px-1.5 py-0.5 rounded ml-2 truncate max-w-[80px]">${item.owner.split(' ')[0]}</span>` : '';
+
+        let actionButton = '';
+        if (item.fileUrl && item.fileUrl !== '') {
+           actionButton = `<a href="${item.fileUrl}" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 text-xs font-bold shadow-lg shadow-blue-500/20" title="Ver Arquivo"><i class="ph ph-file-pdf text-lg"></i> Abrir</a>`;
+        } else if (!isCancel) {
+           if (currentUser.role === 'admin' || currentUser.name.trim().toLowerCase() === item.owner.trim().toLowerCase()) {
+             actionButton = `<button onclick="triggerUpload(${item.rowNumber})" class="bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 text-xs font-bold border border-gray-600" title="Anexar Arquivo"><i class="ph ph-upload-simple text-lg"></i> Anexar</button>`;
+           }
+        }
+        
+        let editBtn = '';
+        if (!isCancel && (currentUser.role === 'admin' || currentUser.name.trim().toLowerCase() === item.owner.trim().toLowerCase())) {
+            const safeText = item.purpose.replace(/'/g, "\\'");
+            editBtn = `<button onclick="openEditModal(${item.rowNumber}, '${safeText}')" class="text-gray-500 hover:text-blue-400 p-1 transition-colors" title="Editar Finalidade"><i class="ph ph-pencil-simple text-lg"></i></button>`;
+        }
+
+        container.innerHTML += `
+          <div class="bg-gray-800/80 p-4 rounded-xl border border-gray-700 hover:border-gray-500 transition-all ${isCancel ? 'opacity-50 grayscale' : ''}">
+            <div class="flex justify-between items-start mb-2">
+              <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 bg-blue-900/30 text-blue-300 font-mono font-bold px-2 py-1 rounded border border-blue-500/20 text-sm">
+                    ${item.memoNumber}
+                    <button onclick="copyToClipboard('${item.memoNumber}')" class="text-blue-400 hover:text-white" title="Copiar"><i class="ph ph-copy"></i></button>
+                </div>
+                <span class="text-xs font-semibold uppercase text-gray-500">${item.tipo}</span>
+                ${ownerBadge}
+              </div>
+              <div class="flex items-center gap-1">
+                 ${editBtn}
+                 ${!isCancel ? `<button onclick="askCancel(${item.rowNumber})" class="text-gray-600 hover:text-red-400 p-1 transition-colors" title="Cancelar"><i class="ph ph-trash text-lg"></i></button>` : ''}
+              </div>
+            </div>
+            <p class="text-sm text-gray-300 mb-3 leading-relaxed font-light">${item.purpose}</p>
+            <div class="flex justify-between items-center pt-2 border-t border-gray-700/50">
+              <span class="text-[10px] text-gray-500 uppercase font-bold flex items-center gap-1"><i class="ph ph-calendar"></i> ${new Date(item.timestamp).toLocaleDateString()}</span>
+              <div class="flex gap-2">
+                 ${actionButton}
+                 ${isCancel ? '<span class="text-red-500 text-[10px] font-bold uppercase border border-red-500/30 bg-red-500/10 px-2 py-1 rounded">Cancelado</span>' : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    document.getElementById('historyFilter').addEventListener('input', (e) => applyFilters(e.target.value.toLowerCase()));
+    document.getElementById('historyButton').addEventListener('click', () => { showScreen('history'); document.getElementById('historyFilter').value = ''; loadHistory(); });
+    document.getElementById('refreshHistory').addEventListener('click', loadHistory);
+    document.getElementById('backButton').addEventListener('click', () => showScreen('main'));
+
+    // Admin & Outros mantidos
+    window.askCancel = (row) => { pendingAction = async () => { try { await callApi('cancelDocument', { rowNumber: row, userName: currentUser.name, role: currentUser.role }); loadHistory(); showToast('Documento cancelado.', 'success'); } catch (e) { showToast(e.message, 'error'); } }; document.getElementById('confirmModal').classList.add('visible'); };
+    document.getElementById('modalCancel').onclick = () => document.getElementById('confirmModal').classList.remove('visible');
+    document.getElementById('modalConfirm').onclick = () => { if(pendingAction) pendingAction(); document.getElementById('confirmModal').classList.remove('visible'); };
+    
+    document.getElementById('adminButton').addEventListener('click', async () => {
+      showScreen('admin');
+      document.getElementById('adminSpinner').classList.remove('hidden');
+      document.getElementById('adminContent').classList.add('hidden');
+      try {
+        const data = await callApi('getAdminData', { role: currentUser.role });
+        document.getElementById('admMemoNext').value = data.counters.memo.next;
+        document.getElementById('admMemoYear').value = data.counters.memo.year;
+        document.getElementById('admOficioNext').value = data.counters.oficio.next;
+        document.getElementById('admOficioYear').value = data.counters.oficio.year;
+        document.getElementById('admPortariaNext').value = data.counters.portaria.next;
+        document.getElementById('admPortariaYear').value = data.counters.portaria.year;
+        renderUsersList(data.users);
+        document.getElementById('adminSpinner').classList.add('hidden');
+        document.getElementById('adminContent').classList.remove('hidden');
+      } catch (e) { showToast(e.message, 'error'); showScreen('main'); }
+    });
+    document.getElementById('closeAdmin').addEventListener('click', () => showScreen('main'));
+    document.getElementById('saveConfigBtn').addEventListener('click', async () => {
+      const payload = { configs: { memo: { next: document.getElementById('admMemoNext').value, year: document.getElementById('admMemoYear').value }, oficio: { next: document.getElementById('admOficioNext').value, year: document.getElementById('admOficioYear').value }, portaria: { next: document.getElementById('admPortariaNext').value, year: document.getElementById('admPortariaYear').value } }, role: currentUser.role };
+      try { await callApi('saveConfigs', payload); showToast('Configurações salvas!', 'success'); } catch (e) { showToast(e.message, 'error'); }
+    });
+    function renderUsersList(users) {
+      const list = document.getElementById('usersList'); list.innerHTML = '';
+      if(users.length === 0) list.innerHTML = '<p class="text-xs text-gray-500 text-center">Vazio.</p>';
+      users.forEach(u => { list.innerHTML += `<div class="flex justify-between items-center bg-gray-900 p-2 rounded text-xs border border-gray-700"><span class="font-medium truncate pr-2 text-gray-300">${u.name} <span class="text-blue-500 ml-1 text-[10px] uppercase font-bold">${u.role}</span></span><button onclick="removeUser('${u.name}')" class="text-red-400 hover:text-white"><i class="ph ph-trash text-lg"></i></button></div>`; });
+    }
+    document.getElementById('addUserBtn').addEventListener('click', async () => {
+      const name = document.getElementById('newUserName').value; const role = document.getElementById('newUserRole').value;
+      if(!name) return;
+      const btn = document.getElementById('addUserBtn'); const originalHtml = btn.innerHTML; btn.innerHTML = '...'; btn.disabled = true;
+      try { await callApi('manageUser', { type: 'add', targetName: name, targetRole: role, role: currentUser.role }); document.getElementById('newUserName').value = ''; const data = await callApi('getAdminData', { role: currentUser.role }); renderUsersList(data.users); showToast('Usuário adicionado!', 'success'); } catch (e) { showToast(e.message, 'error'); } finally { btn.innerHTML = originalHtml; btn.disabled = false; }
+    });
+    window.removeUser = async (targetName) => { if(!confirm(`Remover ${targetName}?`)) return; try { await callApi('manageUser', { type: 'remove', targetName: targetName, role: currentUser.role }); const data = await callApi('getAdminData', { role: currentUser.role }); renderUsersList(data.users); showToast('Usuário removido.', 'success'); } catch (e) { showToast(e.message, 'error'); } };
+  </script>
+</body>
+</html>
+
+
+
+
