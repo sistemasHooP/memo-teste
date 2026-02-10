@@ -25,9 +25,10 @@
     .fundo-gradiente {
       background: linear-gradient(-45deg, #1e3a8a, #1e40af, #111827);
       background-size: 400% 400%; animation: gradientBG 15s ease infinite;
-      /* Correção de Scroll Mobile: Garante que o fundo cubra tudo mesmo com scroll */
       min-height: 100vh;
       width: 100%;
+      /* Correção Mobile: Garante rolagem no corpo se necessário */
+      overflow-y: auto; 
     }
     @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
     
@@ -44,14 +45,13 @@
       outline: none; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
     }
     
-    /* Remove setas do input number */
     input[type=number]::-webkit-inner-spin-button, 
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 
     /* --- CORREÇÃO BARRA DE ROLAGEM (MOBILE & PC) --- */
     ::-webkit-scrollbar {
-      width: 6px; /* Barra mais fina para mobile */
+      width: 6px;
       height: 6px;
     }
     ::-webkit-scrollbar-track {
@@ -68,11 +68,9 @@
     
     /* Garante rolagem suave no iOS/Android */
     .smooth-scroll {
-      -webkit-overflow-scrolling: touch; /* Habilita inércia no iOS */
-      scrollbar-width: thin; 
-      scrollbar-color: #4b5563 rgba(17, 24, 39, 0.3);
-      overscroll-behavior: contain; /* Evita rolar a página inteira */
-      touch-action: pan-y; /* Melhora a resposta ao toque vertical */
+      -webkit-overflow-scrolling: touch; /* Essencial para iOS */
+      overflow-y: auto;
+      overscroll-behavior-y: contain; /* Evita puxar a página inteira */
     }
 
     /* Botões */
@@ -161,7 +159,8 @@
     .toast.error { border-left-color: #ef4444; }
   </style>
 </head>
-<body class="fundo-gradiente text-gray-200 flex flex-col items-center justify-center p-4 py-8 md:py-4">
+<!-- BODY: justify-start no mobile para permitir rolagem da página inteira se necessário -->
+<body class="fundo-gradiente text-gray-200 flex flex-col items-center justify-start md:justify-center p-4 py-8 md:py-4">
 
   <!-- TOAST CONTAINER -->
   <div id="toastContainer" class="toast-container"></div>
@@ -321,8 +320,8 @@
                  class="input-futuristic w-full pl-9 pr-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
         </div>
 
-        <!-- CONTAINER DA LISTA: Adicionada classe 'pb-24' (Padding Bottom Grande) para evitar corte no mobile -->
-        <div id="historyContent" class="max-h-[55vh] overflow-y-auto space-y-3 pr-2 smooth-scroll pb-24"></div>
+        <!-- CONTAINER DA LISTA: Altura fixa em pixels para evitar bugs de 'vh' no mobile -->
+        <div id="historyContent" class="h-96 overflow-y-auto space-y-3 pr-2 smooth-scroll pb-24 border border-gray-700/30 rounded-lg p-1"></div>
         <div id="historySpinner" class="spinner mx-auto mt-6 hidden"></div>
         
         <button id="backButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold mt-4">Voltar</button>
@@ -337,7 +336,7 @@
 
         <div id="adminSpinner" class="spinner mx-auto mt-6"></div>
 
-        <div id="adminContent" class="hidden text-sm space-y-6 max-h-[60vh] sm:max-h-[400px] overflow-y-auto pr-2 smooth-scroll">
+        <div id="adminContent" class="hidden text-sm space-y-6 max-h-[400px] overflow-y-auto pr-2 smooth-scroll">
           <!-- Contadores -->
           <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
             <h3 class="font-bold text-gray-300 mb-2 pb-1 border-b border-gray-600">Numeração Atual</h3>
