@@ -20,36 +20,72 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
   <style>
-    body { font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+    * {
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden; /* Previne scroll duplo */
+    }
+    
+    body { 
+      font-family: 'Poppins', sans-serif; 
+      -webkit-tap-highlight-color: transparent; 
+    }
     
     .fundo-gradiente {
       background: linear-gradient(-45deg, #1e3a8a, #1e40af, #111827);
-      background-size: 400% 400%; animation: gradientBG 15s ease infinite;
-      /* Correção Mobile: Garante rolagem no corpo se necessário usando DVH */
-      min-height: 100dvh;
+      background-size: 400% 400%; 
+      animation: gradientBG 15s ease infinite;
+      min-height: 100%;
+      height: 100%;
       width: 100%;
-      overflow-y: auto; 
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
     }
-    @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    
+    @keyframes gradientBG { 
+      0% { background-position: 0% 50%; } 
+      50% { background-position: 100% 50%; } 
+      100% { background-position: 0% 50%; } 
+    }
     
     .app-card {
-      background-color: rgba(31, 41, 55, 0.7); backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      background-color: rgba(31, 41, 55, 0.7); 
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1); 
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     }
+    
     .input-futuristic {
-      background-color: rgba(17, 24, 39, 0.6); border: 1px solid rgba(75, 85, 99, 0.8);
-      color: white; transition: all 0.3s;
+      background-color: rgba(17, 24, 39, 0.6); 
+      border: 1px solid rgba(75, 85, 99, 0.8);
+      color: white; 
+      transition: all 0.3s;
     }
+    
     .input-futuristic:focus {
-      background-color: rgba(17, 24, 39, 0.9); border-color: #3b82f6;
-      outline: none; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+      background-color: rgba(17, 24, 39, 0.9); 
+      border-color: #3b82f6;
+      outline: none; 
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
     }
     
     input[type=number]::-webkit-inner-spin-button, 
-    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-    input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] { 
+      -moz-appearance: textfield; 
+      appearance: textfield; 
+    }
 
-    /* --- CORREÇÃO BARRA DE ROLAGEM (MOBILE & PC) --- */
+    /* --- BARRA DE ROLAGEM ESTILIZADA --- */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -66,11 +102,29 @@
       background: #6b7280; 
     }
     
-    /* Garante rolagem suave no iOS/Android */
-    .smooth-scroll {
-      -webkit-overflow-scrolling: touch; /* Essencial para iOS */
+    /* --- CORREÇÃO DEFINITIVA PARA SCROLL MOBILE --- */
+    .scroll-container {
       overflow-y: auto;
-      overscroll-behavior-y: contain; /* Evita puxar a página inteira */
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+      touch-action: pan-y;
+      will-change: scroll-position;
+      position: relative;
+    }
+    
+    /* Altura do container de histórico - CORRIGIDO */
+    .history-scroll {
+      height: calc(55vh - 20px);
+      max-height: 400px;
+      min-height: 200px;
+    }
+    
+    @media (min-width: 768px) {
+      .history-scroll {
+        height: 380px;
+        max-height: 380px;
+      }
     }
 
     /* Botões */
@@ -78,20 +132,51 @@
     .btn-success { background: linear-gradient(90deg, #059669, #047857); }
     .btn-danger { background: linear-gradient(90deg, #dc2626, #b91c1c); }
     .btn-secondary { background-color: #4b5563; }
-    .btn-tab { background-color: #374151; color: #d1d5db; flex: 1; padding: 0.75rem; border-radius: 0.5rem; transition: all 0.2s; }
-    .btn-tab.active { background: linear-gradient(90deg, #2563eb, #1e40af); color: white; transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); }
+    .btn-tab { 
+      background-color: #374151; 
+      color: #d1d5db; 
+      flex: 1; 
+      padding: 0.75rem; 
+      border-radius: 0.5rem; 
+      transition: all 0.2s; 
+    }
+    .btn-tab.active { 
+      background: linear-gradient(90deg, #2563eb, #1e40af); 
+      color: white; 
+      transform: translateY(-2px); 
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); 
+    }
 
     /* Spinner */
     .spinner {
-      border: 4px solid rgba(255, 255, 255, 0.2); border-left-color: #ffffff;
-      border-radius: 50%; width: 32px; height: 32px; animation: spin 1s linear infinite;
+      border: 4px solid rgba(255, 255, 255, 0.2); 
+      border-left-color: #ffffff;
+      border-radius: 50%; 
+      width: 32px; 
+      height: 32px; 
+      animation: spin 1s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* Animação Orbital */
-    .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; }
-    .loader-ring { position: relative; width: 64px; height: 64px; }
-    .loader-ring::before, .loader-ring::after { content: ""; position: absolute; border-radius: 50%; border: 4px solid transparent; }
+    .loader-container { 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center; 
+      padding: 1rem; 
+    }
+    .loader-ring { 
+      position: relative; 
+      width: 64px; 
+      height: 64px; 
+    }
+    .loader-ring::before, .loader-ring::after { 
+      content: ""; 
+      position: absolute; 
+      border-radius: 50%; 
+      border: 4px solid transparent; 
+    }
     .loader-ring::before {
       top: 0; left: 0; width: 100%; height: 100%;
       border-top-color: #3b82f6; border-bottom-color: #3b82f6;
@@ -104,7 +189,13 @@
     }
     @keyframes spin-right { 100% { transform: rotate(360deg); } }
     @keyframes spin-left { 100% { transform: rotate(-360deg); } }
-    .loader-text { margin-top: 1rem; font-size: 0.9rem; font-weight: 500; color: #9ca3af; animation: pulse 1.5s infinite; }
+    .loader-text { 
+      margin-top: 1rem; 
+      font-size: 0.9rem; 
+      font-weight: 500; 
+      color: #9ca3af; 
+      animation: pulse 1.5s infinite; 
+    }
     @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
 
     /* Overlay de Bloqueio */
@@ -136,6 +227,7 @@
     .viewer-header {
       padding: 1rem; background: #1f2937; border-bottom: 1px solid #374151;
       display: flex; justify-content: space-between; align-items: center;
+      flex-shrink: 0;
     }
     .viewer-content { flex: 1; position: relative; width: 100%; height: 100%; }
     .viewer-iframe { width: 100%; height: 100%; border: none; background: #fff; }
@@ -149,14 +241,21 @@
         background: rgba(31, 41, 55, 0.95); backdrop-filter: blur(10px);
         color: white; padding: 1rem 1.5rem; border-radius: 0.75rem;
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-        display: flex; items-center; gap: 0.75rem;
+        display: flex; align-items: center; gap: 0.75rem;
         border-left: 4px solid #3b82f6;
         transform: translateX(120%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        min-width: 300px;
+        min-width: 280px;
+        max-width: calc(100vw - 2rem);
     }
     .toast.show { transform: translateX(0); }
     .toast.success { border-left-color: #10b981; }
     .toast.error { border-left-color: #ef4444; }
+    
+    /* Item do histórico - garantir que não bloqueie scroll */
+    .history-item {
+      touch-action: pan-y;
+      user-select: none;
+    }
   </style>
 </head>
 <body class="fundo-gradiente text-gray-200 flex flex-col items-center justify-start md:justify-center p-4 py-8 md:py-4">
@@ -319,8 +418,8 @@
                  class="input-futuristic w-full pl-9 pr-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
         </div>
 
-        <!-- CONTAINER DA LISTA: CORREÇÃO DEFINITIVA (vh no mobile, fixo no pc) -->
-        <div id="historyContent" class="h-[55vh] md:h-96 overflow-y-auto space-y-3 pr-2 smooth-scroll pb-20 border border-gray-700/30 rounded-lg p-1"></div>
+        <!-- CONTAINER DA LISTA: CORREÇÃO DEFINITIVA MOBILE -->
+        <div id="historyContent" class="history-scroll scroll-container space-y-3 pr-1 pb-4 border border-gray-700/30 rounded-lg p-2"></div>
         <div id="historySpinner" class="spinner mx-auto mt-6 hidden"></div>
         
         <button id="backButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold mt-4">Voltar</button>
@@ -335,7 +434,7 @@
 
         <div id="adminSpinner" class="spinner mx-auto mt-6"></div>
 
-        <div id="adminContent" class="hidden text-sm space-y-6 max-h-[60vh] sm:max-h-[400px] overflow-y-auto pr-2 smooth-scroll">
+        <div id="adminContent" class="hidden text-sm space-y-6 max-h-[60vh] sm:max-h-[400px] scroll-container pr-2">
           <!-- Contadores -->
           <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
             <h3 class="font-bold text-gray-300 mb-2 pb-1 border-b border-gray-600">Numeração Atual</h3>
@@ -370,7 +469,7 @@
               </select>
               <button id="addUserBtn" class="btn-success px-3 rounded flex items-center justify-center shadow"><i class="ph ph-plus font-bold"></i></button>
             </div>
-            <div id="usersList" class="space-y-2 max-h-40 overflow-y-auto pr-1 smooth-scroll"></div>
+            <div id="usersList" class="space-y-2 max-h-40 scroll-container pr-1"></div>
           </div>
         </div>
       </div>
@@ -800,7 +899,7 @@
         }
 
         container.innerHTML += `
-          <div class="bg-gray-800/80 p-4 rounded-xl border border-gray-700 hover:border-gray-500 transition-all ${isCancel ? 'opacity-50 grayscale' : ''}">
+          <div class="history-item bg-gray-800/80 p-4 rounded-xl border border-gray-700 hover:border-gray-500 transition-all ${isCancel ? 'opacity-50 grayscale' : ''}">
             <div class="flex justify-between items-start mb-2">
               <div class="flex items-center gap-2">
                 <div class="flex items-center gap-2 bg-blue-900/30 text-blue-300 font-mono font-bold px-2 py-1 rounded border border-blue-500/20 text-sm">
@@ -826,6 +925,12 @@
           </div>
         `;
       });
+      
+      // FORÇA SCROLL NO MOBILE: Garante que o container seja scrollável
+      setTimeout(() => {
+        const historyContent = document.getElementById('historyContent');
+        historyContent.scrollTop = 0;
+      }, 100);
     }
 
     document.getElementById('historyFilter').addEventListener('input', (e) => applyFilters(e.target.value.toLowerCase()));
