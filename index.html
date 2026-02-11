@@ -22,25 +22,26 @@
   <style>
     * {
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
     
-    html, body {
-      margin: 0;
-      padding: 0;
+    html {
       height: 100%;
-      overflow: hidden; /* Previne scroll duplo */
+      overflow: hidden;
     }
     
     body { 
       font-family: 'Poppins', sans-serif; 
-      -webkit-tap-highlight-color: transparent; 
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
     }
     
     .fundo-gradiente {
       background: linear-gradient(-45deg, #1e3a8a, #1e40af, #111827);
       background-size: 400% 400%; 
       animation: gradientBG 15s ease infinite;
-      min-height: 100%;
       height: 100%;
       width: 100%;
       overflow-y: auto;
@@ -87,44 +88,18 @@
 
     /* --- BARRA DE ROLAGEM ESTILIZADA --- */
     ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+      width: 4px;
+      height: 4px;
     }
     ::-webkit-scrollbar-track {
-      background: rgba(17, 24, 39, 0.3); 
-      border-radius: 4px;
+      background: transparent;
     }
     ::-webkit-scrollbar-thumb {
-      background: #4b5563; 
+      background: rgba(75, 85, 99, 0.5); 
       border-radius: 4px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #6b7280; 
-    }
-    
-    /* --- CORREÇÃO DEFINITIVA PARA SCROLL MOBILE --- */
-    .scroll-container {
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior-y: contain;
-      touch-action: pan-y;
-      will-change: scroll-position;
-      position: relative;
-    }
-    
-    /* Altura do container de histórico - CORRIGIDO */
-    .history-scroll {
-      height: calc(55vh - 20px);
-      max-height: 400px;
-      min-height: 200px;
-    }
-    
-    @media (min-width: 768px) {
-      .history-scroll {
-        height: 380px;
-        max-height: 380px;
-      }
+      background: rgba(107, 114, 128, 0.7); 
     }
 
     /* Botões */
@@ -251,10 +226,46 @@
     .toast.success { border-left-color: #10b981; }
     .toast.error { border-left-color: #ef4444; }
     
-    /* Item do histórico - garantir que não bloqueie scroll */
+    /* ========================================= */
+    /* CORREÇÃO CRÍTICA: SCROLL MOBILE           */
+    /* ========================================= */
+    
+    /* Container do histórico com scroll FORÇADO */
+    #historyContent {
+      overflow-y: scroll !important;
+      overflow-x: hidden !important;
+      -webkit-overflow-scrolling: touch !important;
+      overscroll-behavior-y: contain;
+      min-height: 150px;
+      /* Altura fixa em pixels para mobile */
+      height: 280px;
+    }
+    
+    @media (min-width: 768px) {
+      #historyContent {
+        height: 350px;
+      }
+    }
+    
+    /* Garante que os itens não bloqueiem o scroll */
     .history-item {
-      touch-action: pan-y;
-      user-select: none;
+      pointer-events: auto;
+    }
+    
+    /* Área clicável dos botões dentro dos items */
+    .history-item button {
+      touch-action: manipulation;
+    }
+    
+    /* Admin scroll */
+    #adminContent {
+      overflow-y: scroll !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+    
+    #usersList {
+      overflow-y: scroll !important;
+      -webkit-overflow-scrolling: touch !important;
     }
   </style>
 </head>
@@ -394,32 +405,34 @@
         <button id="newRequestButton" class="btn-primary w-full py-3 rounded-lg text-white font-semibold">Voltar ao Início</button>
       </div>
 
-      <!-- TELA HISTÓRICO (Com Scroll Corrigido) -->
+      <!-- TELA HISTÓRICO -->
       <div id="historyScreen" class="hidden">
-        <div class="flex items-center justify-between mb-2">
-          <h2 class="text-xl font-semibold">Histórico</h2>
-          <button id="refreshHistory" class="text-blue-400 hover:text-white p-2" title="Atualizar"><i class="ph ph-arrows-clockwise text-xl"></i></button>
-        </div>
-        
-        <!-- Toggle Filtro Pendentes -->
-        <div class="flex items-center justify-between mb-4 bg-gray-900/40 p-2 rounded-lg border border-gray-700/50">
-          <span class="text-sm text-gray-400 pl-2">Filtrar:</span>
-          <button id="togglePendingBtn" onclick="togglePendingFilter()" class="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-md transition-colors text-gray-300 border border-gray-600 flex items-center gap-1">
-            <i class="ph ph-funnel"></i> Apenas Pendentes
-          </button>
+        <div id="historyHeader">
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="text-xl font-semibold">Histórico</h2>
+            <button id="refreshHistory" class="text-blue-400 hover:text-white p-2" title="Atualizar"><i class="ph ph-arrows-clockwise text-xl"></i></button>
+          </div>
+          
+          <!-- Toggle Filtro Pendentes -->
+          <div class="flex items-center justify-between mb-4 bg-gray-900/40 p-2 rounded-lg border border-gray-700/50">
+            <span class="text-sm text-gray-400 pl-2">Filtrar:</span>
+            <button id="togglePendingBtn" onclick="togglePendingFilter()" class="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-md transition-colors text-gray-300 border border-gray-600 flex items-center gap-1">
+              <i class="ph ph-funnel"></i> Apenas Pendentes
+            </button>
+          </div>
+
+          <!-- Input file Oculto -->
+          <input type="file" id="historyFileInput" class="hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+
+          <div class="relative mb-4">
+            <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-gray-400"></i>
+            <input type="text" id="historyFilter" placeholder="Buscar..." 
+                   class="input-futuristic w-full pl-9 pr-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+          </div>
         </div>
 
-        <!-- Input file Oculto -->
-        <input type="file" id="historyFileInput" class="hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
-
-        <div class="relative mb-4">
-          <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-gray-400"></i>
-          <input type="text" id="historyFilter" placeholder="Buscar..." 
-                 class="input-futuristic w-full pl-9 pr-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
-        </div>
-
-        <!-- CONTAINER DA LISTA: CORREÇÃO DEFINITIVA MOBILE -->
-        <div id="historyContent" class="history-scroll scroll-container space-y-3 pr-1 pb-4 border border-gray-700/30 rounded-lg p-2"></div>
+        <!-- CONTAINER DA LISTA - SCROLL MOBILE CORRIGIDO -->
+        <div id="historyContent" class="space-y-3 pr-1 pb-4 border border-gray-700/30 rounded-lg p-2 bg-gray-900/20"></div>
         <div id="historySpinner" class="spinner mx-auto mt-6 hidden"></div>
         
         <button id="backButton" class="btn-secondary w-full py-3 rounded-lg text-white font-semibold mt-4">Voltar</button>
@@ -434,7 +447,7 @@
 
         <div id="adminSpinner" class="spinner mx-auto mt-6"></div>
 
-        <div id="adminContent" class="hidden text-sm space-y-6 max-h-[60vh] sm:max-h-[400px] scroll-container pr-2">
+        <div id="adminContent" class="hidden text-sm space-y-6 max-h-[60vh] sm:max-h-[400px] pr-2">
           <!-- Contadores -->
           <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
             <h3 class="font-bold text-gray-300 mb-2 pb-1 border-b border-gray-600">Numeração Atual</h3>
@@ -469,7 +482,7 @@
               </select>
               <button id="addUserBtn" class="btn-success px-3 rounded flex items-center justify-center shadow"><i class="ph ph-plus font-bold"></i></button>
             </div>
-            <div id="usersList" class="space-y-2 max-h-40 scroll-container pr-1"></div>
+            <div id="usersList" class="space-y-2 max-h-40 pr-1"></div>
           </div>
         </div>
       </div>
@@ -499,7 +512,6 @@
       <textarea id="editPurposeText" rows="4" class="input-futuristic w-full px-3 py-2 rounded-lg mb-4 text-sm" placeholder="Nova finalidade..."></textarea>
       <div class="flex justify-center space-x-3">
         <button id="editCancel" class="btn-secondary flex-1 py-2 rounded text-white font-medium hover:bg-gray-600 text-sm">Voltar</button>
-        <!-- BOTÃO COM ANIMAÇÃO -->
         <button id="editSave" class="btn-primary flex-1 py-2 rounded text-white font-medium hover:bg-blue-600 text-sm flex items-center justify-center gap-2">Salvar</button>
       </div>
     </div>
@@ -540,15 +552,57 @@
 
     const blockingOverlay = document.getElementById('blockingOverlay');
     const toastContainer = document.getElementById('toastContainer');
-    // Viewer
     const docViewerModal = document.getElementById('docViewerModal');
     const docFrame = document.getElementById('docFrame');
     const downloadBtn = document.getElementById('downloadBtn');
     const viewerLoading = document.getElementById('viewerLoading');
 
+    // ========================================
+    // CORREÇÃO MOBILE: FORÇA SCROLL VIA JS
+    // ========================================
+    function initMobileScroll() {
+      const historyContent = document.getElementById('historyContent');
+      
+      // Força o container a ser scrollável
+      historyContent.style.overflowY = 'scroll';
+      historyContent.style.webkitOverflowScrolling = 'touch';
+      
+      // Previne que o touch seja capturado pela página
+      historyContent.addEventListener('touchstart', function(e) {
+        this.allowUp = (this.scrollTop > 0);
+        this.allowDown = (this.scrollTop < this.scrollHeight - this.clientHeight);
+        this.prevTop = this.scrollTop;
+      }, { passive: true });
+      
+      historyContent.addEventListener('touchmove', function(e) {
+        const up = (this.scrollTop > this.prevTop);
+        const down = (this.scrollTop < this.prevTop);
+        this.prevTop = this.scrollTop;
+        
+        if ((up && this.allowUp) || (down && this.allowDown)) {
+          e.stopPropagation();
+        }
+      }, { passive: true });
+    }
+    
+    // Inicializa quando a página carrega
+    document.addEventListener('DOMContentLoaded', initMobileScroll);
+
     function showScreen(name) {
       Object.values(screens).forEach(s => s.classList.add('hidden'));
       screens[name].classList.remove('hidden');
+      
+      // Força recálculo do scroll quando muda para histórico
+      if (name === 'history') {
+        setTimeout(() => {
+          const historyContent = document.getElementById('historyContent');
+          historyContent.scrollTop = 0;
+          // Força reflow
+          historyContent.style.display = 'none';
+          historyContent.offsetHeight; // Trigger reflow
+          historyContent.style.display = 'block';
+        }, 50);
+      }
     }
 
     function toggleBlocking(show) {
@@ -641,7 +695,6 @@
     };
 
     // --- INICIALIZAÇÃO ---
-    // 4. MUDANÇA: 'appUser' em vez de 'coronelPrevUser'
     (function init() {
         const savedName = localStorage.getItem('appUser');
         if (savedName) {
@@ -661,7 +714,7 @@
         const res = await callApi('checkUser', { name });
         if (res.exists) {
           currentUser = { name: res.name, role: res.role };
-          localStorage.setItem('appUser', res.name); // Salva genérico
+          localStorage.setItem('appUser', res.name);
           document.getElementById('userName').innerText = res.name.split(' ')[0];
           
           if (res.role === 'admin') {
@@ -852,32 +905,37 @@
         } finally {
             btn.innerHTML = oldHtml;
             btn.disabled = false;
-            cancelBtn.disabled = false; // Destrava
+            cancelBtn.disabled = false;
             cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         }
     });
 
     // --- CARREGAR DADOS ---
     async function loadHistory() {
-      document.getElementById('historyContent').innerHTML = '';
-      document.getElementById('historySpinner').classList.remove('hidden');
+      const historyContent = document.getElementById('historyContent');
+      historyContent.innerHTML = '<div class="flex justify-center py-8"><div class="spinner"></div></div>';
+      document.getElementById('historySpinner').classList.add('hidden');
+      
       try {
         fullHistory = await callApi('getUserHistory', { name: currentUser.name, role: currentUser.role });
         applyFilters(document.getElementById('historyFilter').value.toLowerCase());
       } catch (e) {
-        document.getElementById('historyContent').innerHTML = `<p class="text-red-400 text-center text-sm mt-4">${e.message}</p>`;
-      } finally {
-        document.getElementById('historySpinner').classList.add('hidden');
+        historyContent.innerHTML = `<p class="text-red-400 text-center text-sm mt-4">${e.message}</p>`;
       }
     }
 
     function renderHistoryList(list) {
       const container = document.getElementById('historyContent');
       container.innerHTML = '';
+      
       if (list.length === 0) {
-        container.innerHTML = '<div class="text-center mt-8 text-gray-500"><i class="ph ph-files text-4xl mb-2 opacity-50"></i><p>Nenhum documento.</p></div>';
+        container.innerHTML = '<div class="text-center py-8 text-gray-500"><i class="ph ph-files text-4xl mb-2 opacity-50"></i><p>Nenhum documento.</p></div>';
         return;
       }
+      
+      // Cria os elementos de forma otimizada
+      let html = '';
+      
       list.forEach(item => {
         const isCancel = item.status === 'Cancelado';
         const ownerBadge = (currentUser.role === 'admin' && item.owner) 
@@ -898,10 +956,10 @@
             editBtn = `<button onclick="openEditModal(${item.rowNumber}, '${safeText}')" class="text-gray-500 hover:text-blue-400 p-1 transition-colors" title="Editar Finalidade"><i class="ph ph-pencil-simple text-lg"></i></button>`;
         }
 
-        container.innerHTML += `
-          <div class="history-item bg-gray-800/80 p-4 rounded-xl border border-gray-700 hover:border-gray-500 transition-all ${isCancel ? 'opacity-50 grayscale' : ''}">
+        html += `
+          <div class="history-item bg-gray-800/80 p-4 rounded-xl border border-gray-700 ${isCancel ? 'opacity-50 grayscale' : ''}" style="touch-action: pan-y;">
             <div class="flex justify-between items-start mb-2">
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 flex-wrap">
                 <div class="flex items-center gap-2 bg-blue-900/30 text-blue-300 font-mono font-bold px-2 py-1 rounded border border-blue-500/20 text-sm">
                     ${item.memoNumber}
                     <button onclick="copyToClipboard('${item.memoNumber}')" class="text-blue-400 hover:text-white" title="Copiar"><i class="ph ph-copy"></i></button>
@@ -926,20 +984,37 @@
         `;
       });
       
-      // FORÇA SCROLL NO MOBILE: Garante que o container seja scrollável
-      setTimeout(() => {
-        const historyContent = document.getElementById('historyContent');
-        historyContent.scrollTop = 0;
-      }, 100);
+      container.innerHTML = html;
+      
+      // Força o scroll para o topo
+      container.scrollTop = 0;
     }
 
     document.getElementById('historyFilter').addEventListener('input', (e) => applyFilters(e.target.value.toLowerCase()));
-    document.getElementById('historyButton').addEventListener('click', () => { showScreen('history'); document.getElementById('historyFilter').value = ''; loadHistory(); });
+    
+    document.getElementById('historyButton').addEventListener('click', () => { 
+      showScreen('history'); 
+      document.getElementById('historyFilter').value = ''; 
+      loadHistory(); 
+    });
+    
     document.getElementById('refreshHistory').addEventListener('click', loadHistory);
     document.getElementById('backButton').addEventListener('click', () => showScreen('main'));
 
-    // Admin & Outros mantidos
-    window.askCancel = (row) => { pendingAction = async () => { try { await callApi('cancelDocument', { rowNumber: row, userName: currentUser.name, role: currentUser.role }); loadHistory(); showToast('Documento cancelado.', 'success'); } catch (e) { showToast(e.message, 'error'); } }; document.getElementById('confirmModal').classList.add('visible'); };
+    // Admin & Outros
+    window.askCancel = (row) => { 
+      pendingAction = async () => { 
+        try { 
+          await callApi('cancelDocument', { rowNumber: row, userName: currentUser.name, role: currentUser.role }); 
+          loadHistory(); 
+          showToast('Documento cancelado.', 'success'); 
+        } catch (e) { 
+          showToast(e.message, 'error'); 
+        } 
+      }; 
+      document.getElementById('confirmModal').classList.add('visible'); 
+    };
+    
     document.getElementById('modalCancel').onclick = () => document.getElementById('confirmModal').classList.remove('visible');
     document.getElementById('modalConfirm').onclick = () => { if(pendingAction) pendingAction(); document.getElementById('confirmModal').classList.remove('visible'); };
     
@@ -960,23 +1035,63 @@
         document.getElementById('adminContent').classList.remove('hidden');
       } catch (e) { showToast(e.message, 'error'); showScreen('main'); }
     });
+    
     document.getElementById('closeAdmin').addEventListener('click', () => showScreen('main'));
+    
     document.getElementById('saveConfigBtn').addEventListener('click', async () => {
-      const payload = { configs: { memo: { next: document.getElementById('admMemoNext').value, year: document.getElementById('admMemoYear').value }, oficio: { next: document.getElementById('admOficioNext').value, year: document.getElementById('admOficioYear').value }, portaria: { next: document.getElementById('admPortariaNext').value, year: document.getElementById('admPortariaYear').value } }, role: currentUser.role };
+      const payload = { 
+        configs: { 
+          memo: { next: document.getElementById('admMemoNext').value, year: document.getElementById('admMemoYear').value }, 
+          oficio: { next: document.getElementById('admOficioNext').value, year: document.getElementById('admOficioYear').value }, 
+          portaria: { next: document.getElementById('admPortariaNext').value, year: document.getElementById('admPortariaYear').value } 
+        }, 
+        role: currentUser.role 
+      };
       try { await callApi('saveConfigs', payload); showToast('Configurações salvas!', 'success'); } catch (e) { showToast(e.message, 'error'); }
     });
+    
     function renderUsersList(users) {
-      const list = document.getElementById('usersList'); list.innerHTML = '';
+      const list = document.getElementById('usersList'); 
+      list.innerHTML = '';
       if(users.length === 0) list.innerHTML = '<p class="text-xs text-gray-500 text-center">Vazio.</p>';
-      users.forEach(u => { list.innerHTML += `<div class="flex justify-between items-center bg-gray-900 p-2 rounded text-xs border border-gray-700"><span class="font-medium truncate pr-2 text-gray-300">${u.name} <span class="text-blue-500 ml-1 text-[10px] uppercase font-bold">${u.role}</span></span><button onclick="removeUser('${u.name}')" class="text-red-400 hover:text-white"><i class="ph ph-trash text-lg"></i></button></div>`; });
+      users.forEach(u => { 
+        list.innerHTML += `<div class="flex justify-between items-center bg-gray-900 p-2 rounded text-xs border border-gray-700"><span class="font-medium truncate pr-2 text-gray-300">${u.name} <span class="text-blue-500 ml-1 text-[10px] uppercase font-bold">${u.role}</span></span><button onclick="removeUser('${u.name}')" class="text-red-400 hover:text-white"><i class="ph ph-trash text-lg"></i></button></div>`; 
+      });
     }
+    
     document.getElementById('addUserBtn').addEventListener('click', async () => {
-      const name = document.getElementById('newUserName').value; const role = document.getElementById('newUserRole').value;
+      const name = document.getElementById('newUserName').value; 
+      const role = document.getElementById('newUserRole').value;
       if(!name) return;
-      const btn = document.getElementById('addUserBtn'); const originalHtml = btn.innerHTML; btn.innerHTML = '...'; btn.disabled = true;
-      try { await callApi('manageUser', { type: 'add', targetName: name, targetRole: role, role: currentUser.role }); document.getElementById('newUserName').value = ''; const data = await callApi('getAdminData', { role: currentUser.role }); renderUsersList(data.users); showToast('Usuário adicionado!', 'success'); } catch (e) { showToast(e.message, 'error'); } finally { btn.innerHTML = originalHtml; btn.disabled = false; }
+      const btn = document.getElementById('addUserBtn'); 
+      const originalHtml = btn.innerHTML; 
+      btn.innerHTML = '...'; 
+      btn.disabled = true;
+      try { 
+        await callApi('manageUser', { type: 'add', targetName: name, targetRole: role, role: currentUser.role }); 
+        document.getElementById('newUserName').value = ''; 
+        const data = await callApi('getAdminData', { role: currentUser.role }); 
+        renderUsersList(data.users); 
+        showToast('Usuário adicionado!', 'success'); 
+      } catch (e) { 
+        showToast(e.message, 'error'); 
+      } finally { 
+        btn.innerHTML = originalHtml; 
+        btn.disabled = false; 
+      }
     });
-    window.removeUser = async (targetName) => { if(!confirm(`Remover ${targetName}?`)) return; try { await callApi('manageUser', { type: 'remove', targetName: targetName, role: currentUser.role }); const data = await callApi('getAdminData', { role: currentUser.role }); renderUsersList(data.users); showToast('Usuário removido.', 'success'); } catch (e) { showToast(e.message, 'error'); } };
+    
+    window.removeUser = async (targetName) => { 
+      if(!confirm(`Remover ${targetName}?`)) return; 
+      try { 
+        await callApi('manageUser', { type: 'remove', targetName: targetName, role: currentUser.role }); 
+        const data = await callApi('getAdminData', { role: currentUser.role }); 
+        renderUsersList(data.users); 
+        showToast('Usuário removido.', 'success'); 
+      } catch (e) { 
+        showToast(e.message, 'error'); 
+      } 
+    };
   </script>
 </body>
 </html>
